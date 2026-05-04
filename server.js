@@ -2056,6 +2056,35 @@ app.get('/games', (req, res) => {
     );
   });
 
+
+app.get('/fix-admin-now', async (req, res) => {
+  const hash = await bcrypt.hash('1234', 10);
+
+  db.run(
+    `UPDATE users 
+     SET password = ?, is_admin = 1
+     WHERE username = 'admin'`,
+    [hash],
+    function (err) {
+      if (err) return res.send(err.message);
+
+      if (this.changes === 0) {
+        db.run(
+          `INSERT INTO users (username, password, is_admin, credits_left, knockout_bonus_given)
+           VALUES ('admin', ?, 1, 100, 0)`,
+          [hash],
+          (err2) => {
+            if (err2) return res.send(err2.message);
+            res.send('admin created');
+          }
+        );
+      } else {
+        res.send('admin updated');
+      }
+    }
+  );
+});
+
   // =========================
   // UPDATE USER
   // =========================
@@ -2138,12 +2167,22 @@ app.get('/games', (req, res) => {
 
   
 
-  app.get('/check-games', (req, res) => {
+app.get('/check-games', (req, res) => {
     db.all(`SELECT * FROM games ORDER BY game_date, game_time`, (err, rows) => {
       if (err) return res.send(err.message);
       res.json(rows);
     });
-  });
+});
+
+bcrypt.hash('1234', 10).then((hash) => {
+  db.run(
+    `INSERT OR REPLACE INTO users 
+     (id, username, password, is_admin, credits_left, knockout_bonus_given)
+     VALUES (1, 'admin', ?, 1, 100, 0)`,
+    [hash]
+  );
+});
+
 
   const PORT = process.env.PORT || 3001;
 

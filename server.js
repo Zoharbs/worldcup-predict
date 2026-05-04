@@ -462,6 +462,28 @@ app.post('/register', async (req, res) => {
 if (!isStrongPassword(password)) {
   return res.send('Password must be at least 8 characters and include uppercase, lowercase, and a number');
 }
+
+db.get(`SELECT id FROM users WHERE username = ?`, [username], async (err, existingUser) => {
+  if (err) return res.send('Database error');
+
+  if (existingUser) {
+    return res.send('Username already exists');
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  db.run(
+    `INSERT INTO users (username, password, is_admin, credits_left, knockout_bonus_given)
+     VALUES (?, ?, 0, 100, 0)`,
+    [username, passwordHash],
+    (err2) => {
+      if (err2) return res.send('Error creating user');
+      res.redirect('/');
+    }
+  );
+});
+
+
   const passwordHash = await bcrypt.hash(password, 10);
 
   db.run(
@@ -706,6 +728,7 @@ app.get('/', (req, res) => {
             <a href="/leagues" class="auth-btn secondary">Friend Leagues</a>
             <a href="/profile/${req.session.userId}" class="auth-btn secondary">My Profile</a>
             <a href="/my-bets" class="auth-btn secondary">My Bets</a>
+            
             <a href="/change-password" class="auth-btn secondary">Change Password</a>
             ${req.session.isAdmin === 1 ? `<a href="/admin" class="auth-btn secondary">Admin</a>` : ''}
           <a href="/logout" class="auth-btn danger">Logout</a>
@@ -1021,6 +1044,7 @@ app.get('/games', (req, res) => {
               ${isLoggedIn ? `<a href="/leagues" class="filter-link">Friend Leagues</a>` : ''}
               ${isLoggedIn ? `<a href="/profile/${req.session.userId}" class="filter-link">My Profile</a>` : ''}
               ${isLoggedIn ? `<a href="/my-bets" class="filter-link">My Bets</a>` : ''}
+              
               ${activeLeagueId ? `<a href="/leaderboard/${activeLeagueId}" class="filter-link">Active League Leaderboard</a>` : ''}
               ${activeLeagueId ? `<a href="/league/clear" class="filter-link danger-link">Back to general</a>` : ''}
             </div>

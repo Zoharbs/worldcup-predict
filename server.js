@@ -48,6 +48,10 @@ db.serialize(() => {
     )
   `);
 
+  db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username)`, (err) => {
+  if (err) console.error('username unique index error:', err.message);
+});
+
   db.run(`ALTER TABLE users ADD COLUMN credits_left INTEGER DEFAULT 100`, (err) => {
     if (err && !String(err.message).includes('duplicate column name')) {
       console.error('ALTER TABLE users credits_left error:', err.message);
@@ -458,43 +462,33 @@ app.post('/register', async (req, res) => {
   const username = String(req.body.username || '').trim();
   const password = String(req.body.password || '');
 
-  if (!username || !password) return res.send('Username and password are required');
-if (!isStrongPassword(password)) {
-  return res.send('Password must be at least 8 characters and include uppercase, lowercase, and a number');
-}
-
-
-db.get(`SELECT id FROM users WHERE username = ?`, [username], async (err, existingUser) => {
-  if (err) return res.send('Database error');
-
-  if (existingUser) {
-    return res.send('Username already exists');
+  if (!username || !password) {
+    return res.send('Username and password are required');
   }
 
-  const passwordHash = await bcrypt.hash(password, 10);
+  if (!isStrongPassword(password)) {
+    return res.send('Password must be at least 8 characters and include uppercase, lowercase, and a number');
+  }
 
-  db.run(
-    `INSERT INTO users (username, password, is_admin, credits_left, knockout_bonus_given)
-     VALUES (?, ?, 0, 100, 0)`,
-    [username, passwordHash],
-    (err2) => {
-      if (err2) return res.send('Error creating user');
-      res.redirect('/');
+  db.get(`SELECT id FROM users WHERE username = ?`, [username], async (err, existingUser) => {
+    if (err) return res.send('Database error');
+
+    if (existingUser) {
+      return res.send('Username already exists');
     }
-  );
-});
 
-  const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 10);
 
-  db.run(
-    `INSERT INTO users (username, password, is_admin, credits_left, knockout_bonus_given)
-     VALUES (?, ?, 0, 100, 0)`,
-    [username, passwordHash],
-    (err) => {
-      if (err) return res.send('Error creating user');
-      res.redirect('/');
-    }
-  );
+    db.run(
+      `INSERT INTO users (username, password, is_admin, credits_left, knockout_bonus_given)
+       VALUES (?, ?, 0, 100, 0)`,
+      [username, passwordHash],
+      (err2) => {
+        if (err2) return res.send('Error creating user');
+        res.redirect('/');
+      }
+    );
+  });
 });
 
 app.get('/login', (req, res) => {

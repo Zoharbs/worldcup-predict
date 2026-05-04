@@ -463,6 +463,7 @@ if (!isStrongPassword(password)) {
   return res.send('Password must be at least 8 characters and include uppercase, lowercase, and a number');
 }
 
+
 db.get(`SELECT id FROM users WHERE username = ?`, [username], async (err, existingUser) => {
   if (err) return res.send('Database error');
 
@@ -482,7 +483,6 @@ db.get(`SELECT id FROM users WHERE username = ?`, [username], async (err, existi
     }
   );
 });
-
 
   const passwordHash = await bcrypt.hash(password, 10);
 

@@ -505,6 +505,18 @@ app.get('/fix-duplicates', (req, res) => {
   });
 });
 
+app.get('/debug-users', isAdmin, (req, res) => {
+  db.all(`
+    SELECT username, COUNT(*) AS count
+    FROM users
+    GROUP BY LOWER(TRIM(username))
+    HAVING COUNT(*) > 1
+  `, (err, rows) => {
+    if (err) return res.send(err.message);
+    res.json(rows);
+  });
+});
+
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'login.html'));
 });

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>חיפוש מורכב</title>
+</head>
+<body>
+
+
+    <h1>חיפוש מורכב</h1>
+
+
+    <form action="/advanced-search" method="GET">
+        <label>
+            שם משתמש:
+            <input type="text" name="username">
+        </label>
+
+
+        <br><br>
+
+
+        <label>
+            מנהל:
+            <select name="is_admin">
+                <option value="">-- ללא בחירה --</option>
+                <option value="1">מנהל</option>
+                <option value="0">לא מנהל</option>
+            </select>
+        </label>
+
+
+        <br><br>
+
+
+        <button type="submit">חפש</button>
+    </form>
+
+
+</body>
+</html>

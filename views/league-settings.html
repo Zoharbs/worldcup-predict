@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+    <link rel="stylesheet" href="/css/style.css">
+<head>
+  <meta charset="UTF-8" />
+  <title>League Settings</title>
+
+</head>
+<body>
+
+  <h1>League Settings</h1>
+
+  <div class="card">
+    <div class="row"><b>League:</b> <span id="leagueName">Loading...</span></div>
+    <div class="row muted">Here you can choose which competitions this league will participate in. This will affect game filtering and league ranking.</div>
+    <div class="row" id="roleRow" style="display:none;">
+      <b>התפקיד שלי:</b> <span id="myRole"></span>
+    </div>
+  </div>
+
+  <div class="card" id="formCard">
+    <h3>Competitions</h3>
+    <form id="compForm">
+      <div id="compList">Loading...</div>
+      <div class="row">
+        <button type="submit">Save</button>
+        <span id="msg" class="muted"></span>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <a href="/leagues">Back to Leagues</a> |
+    <a href="/games">To Games</a> |
+    <a href="/league/clear">Clear League</a>
+  </div>
+
+  <script>
+    function getLeagueIdFromUrl() {
+      // /league/:id/settings
+      const parts = window.location.pathname.split('/').filter(Boolean);
+      return parts[1]; // parts = ['league', ':id', 'settings']
+    }
+
+    const leagueId = getLeagueIdFromUrl();
+
+    async function load() {
+      const res = await fetch(`/api/league/${leagueId}/settings`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        document.body.innerHTML = `<p>Error: ${data.error || 'Unknown'}</p><p><a href="/leagues">Back to Leagues</a></p>`;
+        return;
+      }
+
+      document.getElementById('leagueName').textContent = data.league.name;
+      document.getElementById('myRole').textContent = data.myRole || 'member';
+      document.getElementById('roleRow').style.display = 'block';
+
+      const selected = new Set((data.selectedCompetitionIds || []).map(Number));
+
+      const html = data.competitions.map(c => {
+        const checked = selected.has(c.id) ? 'checked' : '';
+        return `
+          <div class="row">
+            <label>
+              <input type="checkbox" name="competition" value="${c.id}" ${checked} />
+              ${c.name}
+            </label>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('compList').innerHTML = html;
+
+      // אם לא owner/admin – ננעל את הטופס (השרת גם חוסם, זה רק UX)
+      const role = String(data.myRole || '').toLowerCase();
+      const canEdit = (role === 'owner' || role === 'admin');
+      if (!canEdit) {
+        document.querySelectorAll('input[type="checkbox"]').forEach(x => x.disabled = true);
+        document.querySelector('button[type="submit"]').disabled = true;
+        document.getElementById('msg').textContent = 'רק owner/admin יכולים לערוך.';
+      }
+    }
+
+    document.getElementById('compForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      document.getElementById('msg').textContent = 'Saving...';
+
+      const ids = Array.from(document.querySelectorAll('input[name="competition"]:checked'))
+        .map(x => Number(x.value))
+        .filter(n => Number.isInteger(n) && n > 0);
+
+      const res = await fetch(`/api/league/${leagueId}/settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ competitionIds: ids })
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        document.getElementById('msg').textContent = `Error: ${data.error || 'Unknown'}`;
+        return;
+      }
+
+      document.getElementById('msg').textContent = 'Saved ✅';
+      // אופציונלי: אחרי שמירה קפוץ למשחקים
+      // window.location.href = '/games';
+    });
+
+    load();
+  </script>
+</body>
+</html>

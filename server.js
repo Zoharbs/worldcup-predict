@@ -491,6 +491,20 @@ app.post('/register', async (req, res) => {
   });
 });
 
+app.get('/fix-duplicates', (req, res) => {
+  db.run(`
+    DELETE FROM users
+    WHERE id NOT IN (
+      SELECT MIN(id)
+      FROM users
+      GROUP BY username
+    )
+  `, (err) => {
+    if (err) return res.send(err.message);
+    res.send('duplicates removed');
+  });
+});
+
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'login.html'));
 });

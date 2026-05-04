@@ -1,5 +1,7 @@
 require('dotenv').config();
 const bcrypt = require('bcrypt');
+
+
 const express = require('express');
   const path = require('path');
   const sqlite3 = require('sqlite3').verbose();
@@ -23,6 +25,12 @@ app.use(session({
     resave: false,
     saveUninitialized: false
 }));
+
+const fs = require('fs');
+
+if (!fs.existsSync('./db')) {
+  fs.mkdirSync('./db');
+}
 
 const db = new sqlite3.Database('./db/database.db', (err) => {
  if (err) {
@@ -2260,6 +2268,22 @@ app.get('/check-games', (req, res) => {
       res.json(rows);
     });
 });
+
+
+db.get(`SELECT id FROM users WHERE username = ?`, ['admin'], async (err, row) => {
+  if (err) return console.error(err.message);
+  if (row) return;
+
+  const hash = await bcrypt.hash('1234', 10);
+
+  db.run(
+    `INSERT INTO users (username, password, is_admin, credits_left, knockout_bonus_given)
+     VALUES ('admin', ?, 1, 100, 0)`,
+    [hash]
+  );
+});
+
+
 
 bcrypt.hash('1234', 10).then((hash) => {
   db.run(

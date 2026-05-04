@@ -30,7 +30,7 @@ const fs = require('fs');
 
 if (!fs.existsSync('./db')) {
   fs.mkdirSync('./db');
-}
+} 
 
 const db = new sqlite3.Database('./db/database.db', (err) => {
  if (err) {
@@ -2225,7 +2225,7 @@ app.get('/games', (req, res) => {
     });
   });
 
-  app.post('/update-user', requireLogin, (req, res) => {
+app.post('/update-user', requireLogin, (req, res) => {
     const userId = req.session.userId;
     const username = String(req.body.username || '').trim();
     const password = String(req.body.password || '').trim();
@@ -2244,21 +2244,14 @@ app.get('/games', (req, res) => {
         res.redirect(`/profile/${userId}`);
       }
     );
-  });
+});
 
   // =========================
   // START
   // =========================
 
    
-  db.get(`SELECT id FROM users WHERE username = ?`, ['admin'], (err, row) => {
-  if (!row) {
-    db.run(`
-      INSERT INTO users (username, password, is_admin, credits_left, knockout_bonus_given)
-      VALUES ('admin', '1234', 1, 100, 0)
-    `);
-  }
-});
+
 
   
 
@@ -2272,14 +2265,19 @@ app.get('/check-games', (req, res) => {
 
 db.get(`SELECT id FROM users WHERE username = ?`, ['admin'], async (err, row) => {
   if (err) return console.error(err.message);
-  if (row) return;
+
+  if (row) return; // כבר קיים → לא עושים כלום
 
   const hash = await bcrypt.hash('1234', 10);
 
   db.run(
     `INSERT INTO users (username, password, is_admin, credits_left, knockout_bonus_given)
-     VALUES ('admin', ?, 1, 100, 0)`,
-    [hash]
+     VALUES (?, ?, 1, 100, 0)`,
+    ['admin', hash],
+    (err2) => {
+      if (err2) console.error(err2.message);
+      else console.log('admin created');
+    }
   );
 });
 

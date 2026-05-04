@@ -1,4 +1,5 @@
 require('dotenv').config();
+const bcrypt = require('bcrypt');
 const express = require('express');
   const path = require('path');
   const sqlite3 = require('sqlite3').verbose();
@@ -453,22 +454,25 @@ app.get('/register', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'register.html'));
 });
 
-app.post('/register', (req, res) => {
-    const username = req.body.username;
-    const password = req.body.password;
+app.post('/register', async (req, res) => {
+  const username = String(req.body.username || '').trim();
+  const password = String(req.body.password || '');
 
-    const sql = `
-      INSERT INTO users (username, password, is_admin, credits_left, knockout_bonus_given)
-      VALUES (?, ?, 0, 100, 0)
-    `;
+  if (!username || !password) return res.send('Username and password are required');
+if (!isStrongPassword(password)) {
+  return res.send('Password must be at least 8 characters and include uppercase, lowercase, and a number');
+}
+  const passwordHash = await bcrypt.hash(password, 10);
 
-    db.run(sql, [username, password], (err) => {
-      if (err) {
-        res.send('Error creating user');
-      } else {
-        res.redirect('/');
-      }
-    });
+  db.run(
+    `INSERT INTO users (username, password, is_admin, credits_left, knockout_bonus_given)
+     VALUES (?, ?, 0, 100, 0)`,
+    [username, passwordHash],
+    (err) => {
+      if (err) return res.send('Error creating user');
+      res.redirect('/');
+    }
+  );
 });
 
 app.get('/login', (req, res) => {
@@ -476,31 +480,23 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-    const username = req.body.username;
-    const password = req.body.password;
+  const username = String(req.body.username || '').trim();
+  const password = String(req.body.password || '');
 
-    const sql = `
-      SELECT * FROM users
-      WHERE username = ?
-        AND password = ?
-    `;
+  db.get(`SELECT * FROM users WHERE username = ?`, [username], async (err, row) => {
+    if (err) return res.send('Database error');
+    if (!row) return res.send('Wrong username or password');
 
-    db.get(sql, [username, password], (err, row) => {
-      if (err) {
-        return res.send('Database error');
-      }
+    const ok = await bcrypt.compare(password, row.password);
+    if (!ok) return res.send('Wrong username or password');
 
-      if (!row) {
-        return res.send('Wrong username or password');
-      }
+    req.session.userId = row.id;
+    req.session.username = row.username;
+    req.session.isAdmin = row.is_admin;
+    req.session.activeLeagueId = null;
 
-      req.session.userId = row.id;
-      req.session.username = row.username;
-      req.session.isAdmin = row.is_admin;
-      req.session.activeLeagueId = null;
-
-      res.redirect('/');
-    });
+    res.redirect('/');
+  });
 });
 
 app.get('/logout', (req, res) => {
@@ -512,7 +508,14 @@ app.get('/logout', (req, res) => {
       }
     });
 });
-
+function isStrongPassword(password) {
+  return (
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password)
+  );
+}
 app.get('/help', (req, res) => {
     res.send(`
       <!DOCTYPE html>
@@ -2142,7 +2145,7 @@ app.get('/games', (req, res) => {
     });
   });
 
-  const PORT = 3001;
+  const PORT = process.env.PORT || 3001;
 
   runAutoSync();
 setInterval(runAutoSync, 60 * 60 * 1000);

@@ -499,6 +499,74 @@ app.post('/login', (req, res) => {
   });
 });
 
+app.get('/change-password', requireLogin, (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>Change Password</title>
+      <link rel="stylesheet" href="/css/style.css">
+    </head>
+    <body>
+      <div class="page-wrap">
+        <div class="form-card">
+          <h1>Change Password</h1>
+
+          <form method="POST" action="/change-password">
+            <input type="password" name="current_password" placeholder="Current password" required><br><br>
+            <input type="password" name="new_password" placeholder="New password" required><br><br>
+            <input type="password" name="confirm_password" placeholder="Confirm new password" required><br><br>
+
+            <button type="submit">Update Password</button>
+          </form>
+
+          <br>
+          <a href="/">Back Home</a>
+        </div>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
+app.post('/change-password', requireLogin, async (req, res) => {
+  const userId = req.session.userId;
+  const currentPassword = String(req.body.current_password || '');
+  const newPassword = String(req.body.new_password || '');
+  const confirmPassword = String(req.body.confirm_password || '');
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return res.send('All fields are required');
+  }
+
+  if (newPassword !== confirmPassword) {
+    return res.send('New passwords do not match');
+  }
+
+  if (!isStrongPassword(newPassword)) {
+    return res.send('Password must be at least 8 characters and include uppercase, lowercase, and a number');
+  }
+
+  db.get(`SELECT password FROM users WHERE id = ?`, [userId], async (err, user) => {
+    if (err || !user) return res.send('User not found');
+
+    const ok = await bcrypt.compare(currentPassword, user.password);
+    if (!ok) return res.send('Current password is wrong');
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+
+    db.run(
+      `UPDATE users SET password = ? WHERE id = ?`,
+      [newHash, userId],
+      (err2) => {
+        if (err2) return res.send('Error updating password');
+        res.redirect(`/profile/${userId}`);
+      }
+    );
+  });
+});
+
 app.get('/logout', (req, res) => {
     req.session.destroy((err) => {
       if (err) {
@@ -638,6 +706,7 @@ app.get('/', (req, res) => {
             <a href="/leagues" class="auth-btn secondary">Friend Leagues</a>
             <a href="/profile/${req.session.userId}" class="auth-btn secondary">My Profile</a>
             <a href="/my-bets" class="auth-btn secondary">My Bets</a>
+            <a href="/change-password" class="auth-btn secondary">Change Password</a>
             ${req.session.isAdmin === 1 ? `<a href="/admin" class="auth-btn secondary">Admin</a>` : ''}
           <a href="/logout" class="auth-btn danger">Logout</a>
         </div>

@@ -467,62 +467,79 @@ app.post('/register', async (req, res) => {
   const username = String(req.body.username || '').trim();
   const password = String(req.body.password || '');
 
+  let error = null;
+
   if (!username || !password) {
-    return res.send('Username and password are required');
+    error = 'Username and password are required';
+  } else if (!isStrongPassword(password)) {
+    error = 'Password must be at least 8 characters and include uppercase, lowercase, and a number';
   }
 
-  if (!isStrongPassword(password)) {
-    return res.send('Password must be at least 8 characters and include uppercase, lowercase, and a number');
+  if (error) {
+    return res.send(`
+      <script>
+        alert("${error}");
+        window.location.href = "/register";
+      </script>
+    `);
   }
 
-  try {
-    const passwordHash = await bcrypt.hash(password, 10);
-    await pool.query(
+  db.get(`SELECT id FROM users WHERE username = ?`, [username], async (err, existingUser) => {
+    if (existingUser) {
+      return res.send(`
+        <script>
+          alert("Username already exists");
+          window.location.href = "/register";
+        </script>
+      `);
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+
+    db.run(
       `INSERT INTO users (username, password, is_admin, credits_left, knockout_bonus_given)
-       VALUES ($1, $2, 0, 100, 0)`,
-      [username, passwordHash]
+       VALUES (?, ?, 0, 100, 0)`,
+      [username, hash],
+      () => res.redirect('/')
     );
-
-    res.redirect('/');
-  } catch (err) {
-    if (err.code === '23505') return res.send('Username already exists');
-    console.error(err);
-    res.send('Error creating user');
-  }
+  });
 });
 
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'login.html'));
 });
 
-app.post('/login', async (req, res) => {
+app.post('/login', (req, res) => {
   const username = String(req.body.username || '').trim();
   const password = String(req.body.password || '');
 
-  try {
-    const result = await pool.query(`SELECT * FROM users WHERE username = $1`, [username]);
-    const row = result.rows[0];
-
-    if (!row) return res.send('Wrong username or password');
+  db.get(`SELECT * FROM users WHERE username = ?`, [username], async (err, row) => {
+    if (!row) {
+      return res.send(`
+        <script>
+          alert("Wrong username or password");
+          window.location.href = "/login";
+        </script>
+      `);
+    }
 
     const ok = await bcrypt.compare(password, row.password);
-    if (!ok) return res.send('Wrong username or password');
+
+    if (!ok) {
+      return res.send(`
+        <script>
+          alert("Wrong username or password");
+          window.location.href = "/login";
+        </script>
+      `);
+    }
 
     req.session.userId = row.id;
     req.session.username = row.username;
     req.session.isAdmin = row.is_admin;
-    req.session.activeLeagueId = null;
-
-    await pool.query(
-  `UPDATE users SET last_login_at = CURRENT_TIMESTAMP, last_seen_at = CURRENT_TIMESTAMP WHERE id = $1`,
-  [row.id]
-);
 
     res.redirect('/');
-  } catch (err) {
-    console.error(err);
-    res.send('Database error');
-  }
+  });
 });
 
 app.get('/change-password', requireLogin, (req, res) => {

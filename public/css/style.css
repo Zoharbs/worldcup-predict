@@ -571,3 +571,32 @@ tr:nth-child(even) {
   }
 
 }
+
+
+@media (max-width: 768px) {
+  .top-nav,
+  .filters-bar {
+    position: relative !important;
+    top: auto !important;
+    z-index: 1 !important;
+    margin: 12px auto 20px !important;
+    padding: 12px !important;
+  }
+
+  .top-nav,
+  .filters-nav {
+    flex-direction: column !important;
+  }
+
+  .top-nav a,
+  .filter-link {
+    width: 100% !important;
+    max-width: 280px !important;
+    min-height: 48px !important;
+    margin: 0 auto !important;
+  }
+
+  .game-card {
+    margin-top: 18px !important;
+  }
+}

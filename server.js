@@ -533,9 +533,18 @@ app.post('/login', (req, res) => {
       return res.send(`
         <script>
           alert("Wrong username or password");
+          
           window.location.href = "/login";
         </script>
+        
       `);
+      await pool.query(
+  `UPDATE users 
+   SET last_login_at = CURRENT_TIMESTAMP,
+       last_seen_at = CURRENT_TIMESTAMP
+   WHERE id = $1`,
+  [row.id]
+);
     }
 
     req.session.userId = row.id;

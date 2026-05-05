@@ -518,6 +518,8 @@ app.post('/login', (req, res) => {
   const password = String(req.body.password || '');
 
   db.get(`SELECT * FROM users WHERE username = ?`, [username], async (err, row) => {
+    if (err) return res.send('Database error');
+
     if (!row) {
       return res.send(`
         <script>
@@ -533,23 +535,23 @@ app.post('/login', (req, res) => {
       return res.send(`
         <script>
           alert("Wrong username or password");
-          
           window.location.href = "/login";
         </script>
-        
       `);
-      await pool.query(
-  `UPDATE users 
-   SET last_login_at = CURRENT_TIMESTAMP,
-       last_seen_at = CURRENT_TIMESTAMP
-   WHERE id = $1`,
-  [row.id]
-);
     }
+
+    await pool.query(
+      `UPDATE users
+       SET last_login_at = CURRENT_TIMESTAMP,
+           last_seen_at = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [row.id]
+    );
 
     req.session.userId = row.id;
     req.session.username = row.username;
     req.session.isAdmin = row.is_admin;
+    req.session.activeLeagueId = null;
 
     res.redirect('/');
   });

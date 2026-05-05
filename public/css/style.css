@@ -40,7 +40,9 @@ a {
 a:hover {
   color: white;
 }
-
+.center-page {
+  padding: 20px;
+}
 .page-wrap,
 .center-page {
   width: min(1180px, 94%);

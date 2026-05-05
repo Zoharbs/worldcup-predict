@@ -1594,6 +1594,8 @@ app.get('/admin/stats', isAdmin, async (req, res) => {
     <head>
       <title>Admin Stats</title>
       <link rel="stylesheet" href="/css/style.css">
+      <link rel="icon" type="image/png" href="/favicon-v3.png">
+<link rel="apple-touch-icon" href="/favicon-v3.png">
     </head>
     <body>
       <div class="page-wrap">

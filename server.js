@@ -73,11 +73,19 @@ async function setupDatabase() {
       password TEXT NOT NULL,
       is_admin INTEGER DEFAULT 0,
       credits_left INTEGER DEFAULT 100,
-      knockout_bonus_given INTEGER DEFAULT 0
+      knockout_bonus_given INTEGER DEFAULT 0,
+      last_login_at TIMESTAMP,
+      last_seen_at TIMESTAMP
+
     )
   `);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP`);
+await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMP`);
+  
 
-  await pool.query(`
+
+
+await pool.query(`
     CREATE TABLE IF NOT EXISTS competitions (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
@@ -504,6 +512,11 @@ app.post('/login', async (req, res) => {
     req.session.username = row.username;
     req.session.isAdmin = row.is_admin;
     req.session.activeLeagueId = null;
+
+    await pool.query(
+  `UPDATE users SET last_login_at = CURRENT_TIMESTAMP, last_seen_at = CURRENT_TIMESTAMP WHERE id = $1`,
+  [row.id]
+);
 
     res.redirect('/');
   } catch (err) {
@@ -1520,6 +1533,77 @@ app.post('/admin/sync-games', isAdmin, async (req, res) => {
     console.error(err);
     res.send('Game sync error: ' + err.message);
   }
+});
+
+
+app.get('/admin/stats', isAdmin, async (req, res) => {
+  const users = await pool.query(`SELECT COUNT(*) FROM users`);
+  const bets = await pool.query(`SELECT COUNT(*) FROM bets`);
+  const online = await pool.query(`
+    SELECT COUNT(*) 
+    FROM users 
+    WHERE last_seen_at >= NOW() - INTERVAL '5 minutes'
+  `);
+
+  const recent = await pool.query(`
+    SELECT username, last_login_at
+    FROM users
+    ORDER BY last_login_at DESC NULLS LAST
+    LIMIT 10
+  `);
+
+  const list = recent.rows.map(u => `
+    <tr>
+      <td>${u.username}</td>
+      <td>${u.last_login_at || '-'}</td>
+    </tr>
+  `).join('');
+
+  res.send(`
+    <html>
+    <head>
+      <title>Admin Stats</title>
+      <link rel="stylesheet" href="/css/style.css">
+    </head>
+    <body>
+      <div class="page-wrap">
+        <h1>Admin Stats</h1>
+
+        <div class="profile-stats">
+          <div class="stat-box">
+            <div class="stat-label">Users</div>
+            <div class="stat-value">${users.rows[0].count}</div>
+          </div>
+
+          <div class="stat-box">
+            <div class="stat-label">Online Now</div>
+            <div class="stat-value">${online.rows[0].count}</div>
+          </div>
+
+          <div class="stat-box">
+            <div class="stat-label">Total Bets</div>
+            <div class="stat-value">${bets.rows[0].count}</div>
+          </div>
+        </div>
+
+        <h3>Recent Logins</h3>
+
+        <div class="table-card">
+          <table>
+            <tr>
+              <th>User</th>
+              <th>Last Login</th>
+            </tr>
+            ${list}
+          </table>
+        </div>
+
+        <br>
+        <a href="/admin">Back to Admin</a>
+      </div>
+    </body>
+    </html>
+  `);
 });
 
 app.post('/admin/grant-knockout-bonus', isAdmin, (req, res) => {

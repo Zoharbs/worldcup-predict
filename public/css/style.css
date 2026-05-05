@@ -538,3 +538,34 @@ tr:nth-child(even) {
     max-width: 260px;
   }
 }
+
+@media (max-width: 768px) {
+
+  .top-nav {
+    position: static; /* ❗ הכי חשוב */
+    border-radius: 18px;
+    margin-bottom: 16px;
+  }
+
+  .top-nav a {
+    width: 100%;
+    max-width: 280px;
+  }
+
+}
+
+@media (max-width: 768px) {
+
+  .guess-form-row {
+    flex-direction: row;
+  }
+
+  input[name="credits_used"] {
+    width: 100px;
+  }
+
+  .guess-panel {
+    padding-bottom: 25px;
+  }
+
+}

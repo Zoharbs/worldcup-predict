@@ -700,7 +700,7 @@ app.get('/', (req, res) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="/favicon-v3.png">
 <link rel="apple-touch-icon" href="/favicon-v3.png">      <link rel="stylesheet" href="/css/style.css">
-      <title>HOME</title>
+      <title>Predict Worldcup</title>
     </head>
     <body>
       <div class="center-page">

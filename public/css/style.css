@@ -514,3 +514,27 @@ tr:nth-child(even) {
     grid-template-columns: 1fr;
   }
 }
+@media (max-width: 768px) {
+  .home-box {
+    margin: 20px;
+  }
+
+  .home-user-area {
+    gap: 14px;
+  }
+
+  h1 {
+    font-size: 36px;
+  }
+
+  .description {
+    font-size: 15px;
+    padding: 0 10px;
+  }
+
+  button,
+  .auth-btn {
+    width: 100%;
+    max-width: 260px;
+  }
+}

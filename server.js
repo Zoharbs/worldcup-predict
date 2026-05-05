@@ -31,6 +31,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('public'));
 
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'favicon-v3.PNG'));
+});
+
 // =========================
 // SMALL POSTGRES HELPERS
 // =========================

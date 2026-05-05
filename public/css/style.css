@@ -411,3 +411,106 @@ tr:nth-child(even) {
     margin-bottom: -18px;
   }
 }
+
+
+
+
+
+@media (max-width: 768px) {
+  body {
+    font-size: 16px;
+  }
+
+  h1,
+  .section-title,
+  .profile-title {
+    font-size: 44px;
+    line-height: 1;
+  }
+
+  .home-box {
+    padding: 32px 18px;
+    border-radius: 22px;
+  }
+
+  .buttons,
+  .auth-links,
+  .top-nav,
+  .filters-nav,
+  .profile-links,
+  .league-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  button,
+  .auth-btn,
+  .secondary-btn,
+  .filter-link,
+  .top-nav a,
+  .profile-links a {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .game-card,
+  .bet-card,
+  .help-card,
+  .league-card,
+  .form-card,
+  .table-card,
+  .profile-card {
+    padding: 18px;
+    margin: 18px 0;
+  }
+
+  .teams-row,
+  .bet-teams {
+    flex-direction: column;
+    gap: 8px;
+    font-size: 24px;
+  }
+
+  .vs {
+    font-size: 22px;
+  }
+
+  .team-logo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .guess-panel,
+  .result-panel {
+    margin: 20px -18px -18px;
+    padding: 20px;
+  }
+
+  .guess-form-row {
+    gap: 10px;
+  }
+
+  .guess-score-input {
+    width: 72px;
+    height: 58px;
+  }
+
+  table {
+    font-size: 14px;
+  }
+
+  th,
+  td {
+    padding: 10px 6px;
+  }
+
+  .table-card {
+    overflow-x: auto;
+  }
+
+  .profile-stats,
+  .bet-details,
+  .leagues-grid {
+    grid-template-columns: 1fr;
+  }
+}

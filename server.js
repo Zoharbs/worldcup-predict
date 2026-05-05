@@ -7,7 +7,7 @@ const bcrypt = require('bcrypt');
 const { Pool } = require('pg');
 
 const app = express();
-
+app.set('trust proxy', 1);
 const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY;
 const PORT = process.env.PORT || 3001;
 

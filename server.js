@@ -947,7 +947,10 @@ app.get('/leaderboard', (req, res) => {
 
 app.get('/profile/:id', (req, res) => {
   const profileUserId = Number(req.params.id);
-  if (!Number.isInteger(profileUserId) || profileUserId <= 0) return res.send('Invalid user id');
+
+  if (!Number.isInteger(profileUserId) || profileUserId <= 0) {
+    return res.send('Invalid user id');
+  }
 
   db.get(
     `
@@ -957,7 +960,31 @@ app.get('/profile/:id', (req, res) => {
       u.credits_left,
       COALESCE(SUM(b.points_won), 0) AS total_points,
       COUNT(b.id) AS total_bets,
-      SUM(CASE WHEN b.home_guess = gm.home_score AND b.away_guess = gm.away_score THEN 1 ELSE 0 END) AS exact_bets
+
+      COALESCE(SUM(CASE
+        WHEN gm.status = 'finished'
+         AND b.home_guess = gm.home_score
+         AND b.away_guess = gm.away_score
+        THEN 1 ELSE 0
+      END), 0) AS exact_bets,
+
+      COALESCE(SUM(CASE
+        WHEN gm.status = 'finished'
+         AND (
+           (b.home_guess - b.away_guess > 0 AND gm.home_score - gm.away_score > 0)
+           OR
+           (b.home_guess - b.away_guess < 0 AND gm.home_score - gm.away_score < 0)
+           OR
+           (b.home_guess - b.away_guess = 0 AND gm.home_score - gm.away_score = 0)
+         )
+        THEN 1 ELSE 0
+      END), 0) AS direction_bets,
+
+      COALESCE(SUM(CASE
+        WHEN gm.status = 'finished'
+        THEN 1 ELSE 0
+      END), 0) AS finished_bets
+
     FROM users u
     LEFT JOIN bets b ON b.user_id = u.id
     LEFT JOIN games gm ON gm.id = b.game_id
@@ -991,9 +1018,18 @@ app.get('/profile/:id', (req, res) => {
         (err2, bestBet) => {
           if (err2) return res.send('Error loading best bet');
 
-          const exactBets = userStats.exact_bets || 0;
-          const totalBets = userStats.total_bets || 0;
-          const successRate = totalBets > 0 ? ((exactBets / totalBets) * 100).toFixed(1) : '0.0';
+          const exactBets = Number(userStats.exact_bets || 0);
+          const directionBets = Number(userStats.direction_bets || 0);
+          const totalBets = Number(userStats.total_bets || 0);
+          const finishedBets = Number(userStats.finished_bets || 0);
+
+          const exactRate = finishedBets > 0
+            ? ((exactBets / finishedBets) * 100).toFixed(1)
+            : '0.0';
+
+          const directionRate = finishedBets > 0
+            ? ((directionBets / finishedBets) * 100).toFixed(1)
+            : '0.0';
 
           res.send(`
             <!DOCTYPE html>
@@ -1001,7 +1037,8 @@ app.get('/profile/:id', (req, res) => {
             <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="/favicon.ico?v=31">             <title>User Profile</title>
+              <link rel="icon" href="/favicon.ico?v=31">
+              <title>User Profile</title>
               <link rel="stylesheet" href="/css/style.css">
             </head>
             <body>
@@ -1009,23 +1046,55 @@ app.get('/profile/:id', (req, res) => {
                 <div class="profile-card">
                   <div class="profile-title">${userStats.username}</div>
                   <div class="profile-subtitle">Player profile and tournament stats</div>
+
                   <div class="profile-stats">
-                    <div class="stat-box"><div class="stat-label">Total Points</div><div class="stat-value">${userStats.total_points}</div></div>
-                    <div class="stat-box"><div class="stat-label">Credits Left</div><div class="stat-value">${userStats.credits_left ?? 0}</div></div>
-                    <div class="stat-box"><div class="stat-label">Total Bets</div><div class="stat-value">${totalBets}</div></div>
-                    <div class="stat-box"><div class="stat-label">Success Rate</div><div class="stat-value">${successRate}%</div></div>
+                    <div class="stat-box">
+                      <div class="stat-label">Total Points</div>
+                      <div class="stat-value">${userStats.total_points}</div>
+                    </div>
+
+                    <div class="stat-box">
+                      <div class="stat-label">Credits Left</div>
+                      <div class="stat-value">${userStats.credits_left ?? 0}</div>
+                    </div>
+
+                    <div class="stat-box">
+                      <div class="stat-label">Total Bets</div>
+                      <div class="stat-value">${totalBets}</div>
+                    </div>
+
+                    <div class="stat-box">
+                      <div class="stat-label">Finished Bets</div>
+                      <div class="stat-value">${finishedBets}</div>
+                    </div>
+
+                    <div class="stat-box">
+                      <div class="stat-label">Exact Hit Rate</div>
+                      <div class="stat-value">${exactRate}%</div>
+                    </div>
+
+                    <div class="stat-box">
+                      <div class="stat-label">Direction Rate</div>
+                      <div class="stat-value">${directionRate}%</div>
+                    </div>
                   </div>
+
                   <div class="profile-section">
                     <h3>Best Bet</h3>
-                    ${bestBet ? `
-                      <div class="best-guess-row"><b>Match:</b> ${bestBet.home_team} vs ${bestBet.away_team}</div>
-                      <div class="best-guess-row"><b>Your Guess:</b> ${bestBet.home_guess} : ${bestBet.away_guess}</div>
-                      <div class="best-guess-row"><b>Final Score:</b> ${bestBet.home_score ?? '-'} : ${bestBet.away_score ?? '-'}</div>
-                      <div class="best-guess-row"><b>Stage:</b> ${formatStage(bestBet.stage)}</div>
-                      <div class="best-guess-row"><b>Credits Used:</b> ${bestBet.credits_used}</div>
-                      <div class="best-guess-row"><b>Points Earned:</b> ${bestBet.points_won ?? 0}</div>
-                    ` : `<div class="best-guess-row">No bets yet</div>`}
+                    ${
+                      bestBet
+                        ? `
+                          <div class="best-guess-row"><b>Match:</b> ${bestBet.home_team} vs ${bestBet.away_team}</div>
+                          <div class="best-guess-row"><b>Your Guess:</b> ${bestBet.home_guess} : ${bestBet.away_guess}</div>
+                          <div class="best-guess-row"><b>Final Score:</b> ${bestBet.home_score ?? '-'} : ${bestBet.away_score ?? '-'}</div>
+                          <div class="best-guess-row"><b>Stage:</b> ${formatStage(bestBet.stage)}</div>
+                          <div class="best-guess-row"><b>Credits Used:</b> ${bestBet.credits_used}</div>
+                          <div class="best-guess-row"><b>Points Earned:</b> ${bestBet.points_won ?? 0}</div>
+                        `
+                        : `<div class="best-guess-row">No bets yet</div>`
+                    }
                   </div>
+
                   <div class="profile-links">
                     <a href="/leaderboard">Leaderboard</a>
                     <a href="/leagues">Friend Leagues</a>

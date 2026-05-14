@@ -712,14 +712,33 @@ app.get('/', (req, res) => {
  <link rel="stylesheet" href="/css/style.css">
       <title>Predict Worldcup</title>
     </head>
-    <div id="helpOverlay" class="help-overlay">
-  <button class="help-close" onclick="closeHelpOverlay()">×</button>
+  <div id="helpOverlay" class="help-overlay">
+  <div class="help-popup">
+    <button class="help-close" onclick="closeHelpOverlay()">×</button>
 
-  <iframe
-    src="/help"
-    class="help-frame"
-    frameborder="0">
-  </iframe>
+    <h2>How to Play</h2>
+    <p>Predict World Cup match scores and earn points.</p>
+
+    <p><b>Exact score:</b> 3 points</p>
+    <p><b>Correct winner / draw:</b> 1 point</p>
+    <p><b>Wrong prediction:</b> 0 points</p>
+
+    <p>You start with 100 credits. Use them wisely.</p>
+
+    <a href="/help" class="auth-btn secondary">Full Rules</a>
+  </div>
+</div>
+
+<script>
+  function closeHelpOverlay() {
+    document.getElementById('helpOverlay').style.display = 'none';
+    localStorage.setItem('seenHelpOverlay', 'true');
+  }
+
+  if (localStorage.getItem('seenHelpOverlay') === 'true') {
+    document.getElementById('helpOverlay').style.display = 'none';
+  }
+</script>
 </div>
 
 <script>

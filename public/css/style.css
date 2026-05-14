@@ -646,48 +646,31 @@ tr:nth-child(even) {
   position: fixed;
   inset: 0;
   z-index: 999999;
-
   background: rgba(0,0,0,0.72);
-
   display: flex;
   align-items: center;
   justify-content: center;
-
-  padding: 20px;
+  padding: 22px;
 }
 
-.help-frame {
-  width: min(900px, 100%);
-  height: min(85vh, 820px);
-
-  border: 1px solid var(--border);
-  border-radius: 28px;
-
-  background: #0b1210;
-
-  box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+.help-popup {
+  width: min(520px, 94%);
+  padding: 30px 24px;
+  border-radius: 26px;
+  background: linear-gradient(145deg, var(--card), var(--card-light));
+  border: 1px solid var(--line);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+  position: relative;
 }
 
 .help-close {
-  position: fixed;
-  top: 26px;
-  right: 26px;
-
-  z-index: 1000000;
-
-  width: 52px;
-  height: 52px;
-
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  padding: 0;
   border-radius: 50%;
-
-  border: 1px solid var(--border);
-
-  background: rgba(0,0,0,0.78);
-
-  color: white;
-
-  font-size: 30px;
-  font-weight: bold;
-
-  cursor: pointer;
+  font-size: 28px;
 }

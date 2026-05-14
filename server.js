@@ -871,18 +871,30 @@ app.get('/', (req, res) => {
 // =========================
 
 app.get('/leaderboard', (req, res) => {
-  const sql = `
-    SELECT u.id, u.username, u.credits_left, COALESCE(SUM(b.points_won), 0) AS total_points
-    FROM users u
-    LEFT JOIN bets b ON b.user_id = u.id
-    GROUP BY u.id, u.username, u.credits_left
-    ORDER BY
-  total_points DESC,
-  exact_hits DESC,
-  credits_used ASC,
-  username ASC
-  `;
-
+ const sql = `
+  SELECT
+    u.id,
+    u.username,
+    u.credits_left,
+    COALESCE(SUM(b.points_won), 0) AS total_points,
+    COALESCE(SUM(
+      CASE 
+        WHEN b.home_guess = g.home_score 
+         AND b.away_guess = g.away_score 
+        THEN 1 ELSE 0 
+      END
+    ), 0) AS exact_hits,
+    COALESCE(SUM(b.credits_used), 0) AS total_credits_used
+  FROM users u
+  LEFT JOIN bets b ON b.user_id = u.id
+  LEFT JOIN games g ON g.id = b.game_id
+  GROUP BY u.id, u.username, u.credits_left
+  ORDER BY
+    total_points DESC,
+    exact_hits DESC,
+    total_credits_used ASC,
+    u.username ASC
+`;
   db.all(sql, [], (err, rows) => {
     if (err) return res.send('Error loading leaderboard');
 
@@ -1633,15 +1645,32 @@ app.get('/leaderboard/:leagueId', requireLogin, (req, res) => {
     (err, league) => {
       if (err || !league) return res.send('No access to this league');
 
-      const sql = `
-        SELECT u.id, u.username, u.credits_left, COALESCE(SUM(b.points_won), 0) AS total_points
-        FROM league_members lm
-        JOIN users u ON u.id = lm.user_id
-        LEFT JOIN bets b ON b.user_id = u.id
-        WHERE lm.league_id = ?
-        GROUP BY u.id, u.username, u.credits_left
-        ORDER BY total_points DESC, u.username ASC
-      `;
+     const sql = `
+  SELECT
+    u.id,
+    u.username,
+    u.credits_left,
+    COALESCE(SUM(b.points_won), 0) AS total_points,
+    COALESCE(SUM(
+      CASE 
+        WHEN b.home_guess = g.home_score 
+         AND b.away_guess = g.away_score 
+        THEN 1 ELSE 0 
+      END
+    ), 0) AS exact_hits,
+    COALESCE(SUM(b.credits_used), 0) AS total_credits_used
+  FROM league_members lm
+  JOIN users u ON u.id = lm.user_id
+  LEFT JOIN bets b ON b.user_id = u.id
+  LEFT JOIN games g ON g.id = b.game_id
+  WHERE lm.league_id = ?
+  GROUP BY u.id, u.username, u.credits_left
+  ORDER BY
+    total_points DESC,
+    exact_hits DESC,
+    total_credits_used ASC,
+    u.username ASC
+`;
 
       db.all(sql, [leagueId], (err2, rows) => {
         if (err2) return res.send('Error loading league leaderboard');

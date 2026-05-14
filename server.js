@@ -564,9 +564,8 @@ app.get('/change-password', requireLogin, (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="/favicon-v3.png">
-<link rel="apple-touch-icon" href="/favicon-v3.png">      <title>Change Password</title>
-      <link rel="stylesheet" href="/css/style.css">
+  <title>Change Password</title>
+ <link rel="icon" href="/favicon.ico?v=31">
     </head>
     <body>
       <div class="page-wrap">
@@ -643,8 +642,8 @@ app.get('/help', (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="/favicon-v3.png">
-<link rel="apple-touch-icon" href="/favicon-v3.png">      <title>How to Play</title>
+<link rel="icon" href="/favicon.ico?v=31">
+     <title>How to Play</title>
       <link rel="stylesheet" href="/css/style.css">
     </head>
     <body>
@@ -709,8 +708,7 @@ app.get('/', (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="/favicon-v3.png">
-<link rel="apple-touch-icon" href="/favicon-v3.png">     
+<link rel="icon" href="/favicon.ico?v=31">    
  <link rel="stylesheet" href="/css/style.css">
       <title>Predict Worldcup</title>
     </head>
@@ -771,8 +769,7 @@ app.get('/leaderboard', (req, res) => {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="/favicon-v3.png">
-<link rel="apple-touch-icon" href="/favicon-v3.png">        <title>Leaderboard</title>
+<link rel="icon" href="/favicon.ico?v=31">       <title>Leaderboard</title>
         <link rel="stylesheet" href="/css/style.css">
       </head>
       <body>
@@ -857,8 +854,7 @@ app.get('/profile/:id', (req, res) => {
             <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="/favicon-v3.png">
-<link rel="apple-touch-icon" href="/favicon-v3.png">              <title>User Profile</title>
+<link rel="icon" href="/favicon.ico?v=31">             <title>User Profile</title>
               <link rel="stylesheet" href="/css/style.css">
             </head>
             <body>
@@ -1033,8 +1029,7 @@ app.get('/games', (req, res) => {
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="/favicon-v3.png">
-<link rel="apple-touch-icon" href="/favicon-v3.png">          <title>Game list</title>
+<link rel="icon" href="/favicon.ico?v=31">      <title>Game list</title>
           <link rel="stylesheet" href="/css/style.css">
         </head>
         <body>
@@ -1204,8 +1199,8 @@ app.get('/my-bets', requireLogin, (req, res) => {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="/favicon-v3.png">
-<link rel="apple-touch-icon" href="/favicon-v3.png">        <title>My Bets</title>
+<link rel="icon" href="/favicon.ico?v=31">
+      <title>My Bets</title>
         <link rel="stylesheet" href="/css/style.css">
       </head>
       <body>
@@ -1333,8 +1328,7 @@ app.get('/leagues', requireLogin, (req, res) => {
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="/favicon-v3.png">
-<link rel="apple-touch-icon" href="/favicon-v3.png">          <title>Friend Leagues</title>
+<link rel="icon" href="/favicon.ico?v=31">         <title>Friend Leagues</title>
           <link rel="stylesheet" href="/css/style.css">
         </head>
         <body>
@@ -1390,8 +1384,8 @@ app.get('/leaderboard/:leagueId', requireLogin, (req, res) => {
           <html lang="en">
           <head><meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="/favicon-v3.png">
-<link rel="apple-touch-icon" href="/favicon-v3.png">          <title>League Leaderboard</title><link rel="stylesheet" href="/css/style.css"></head>
+<link rel="icon" href="/favicon.ico?v=31">     
+  <title>League Leaderboard</title><link rel="stylesheet" href="/css/style.css"></head>
           <body><div class="page-wrap"><div class="section-title">League Leaderboard</div><div class="section-subtitle">${league.name}</div><div class="top-nav"><a href="/leagues">Friend Leagues</a><a href="/games">Games</a><a href="/leaderboard">Global Leaderboard</a></div><div class="table-card"><table><tr><th>Rank</th><th>User</th><th>Points</th><th>Credits Left</th></tr>${tableRows || '<tr><td colspan="4">No data</td></tr>'}</table></div></div></body>
           </html>
         `);
@@ -1436,8 +1430,8 @@ app.get('/admin/users', isAdmin, (req, res) => {
       <html lang="en">
       <head><meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="/favicon-v3.png">
-<link rel="apple-touch-icon" href="/favicon-v3.png">      <title>Admin Users</title><link rel="stylesheet" href="/css/style.css"></head>
+<link rel="icon" href="/favicon.ico?v=31">
+  <title>Admin Users</title><link rel="stylesheet" href="/css/style.css"></head>
       <body><div class="page-wrap"><div class="section-title">Admin Users</div><div class="section-subtitle">Manage users, reset points, and remove accounts</div><div class="top-nav"><a href="/admin">Admin</a><a href="/">Home</a><a href="/leaderboard">Leaderboard</a></div><div class="table-card"><table><tr><th>ID</th><th>Username</th><th>Admin</th><th>Total Points</th><th>Credits Left</th><th>Actions</th></tr>${tableRows || `<tr><td colspan="6">No users found</td></tr>`}</table></div></div></body>
       </html>
     `);
@@ -1489,8 +1483,8 @@ app.get('/admin/add-game', isAdmin, (req, res) => {
       <html lang="en">
       <head><meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="/favicon-v3.png">
-<link rel="apple-touch-icon" href="/favicon-v3.png">      <title>Add Game</title></head>
+<link rel="icon" href="/favicon.ico?v=31">     
+<title>Add Game</title></head>
       <body><h1>Add New Game</h1><form action="/admin/add-game" method="POST"><label>Competition:<select name="competition_id" required>${options}</select></label><br><br><label>Home Team:<input type="text" name="home_team" required></label><br><br><label>Away Team:<input type="text" name="away_team" required></label><br><br><label>Date:<input type="date" name="game_date" required></label><br><br><label>Time:<input type="time" name="game_time" required></label><br><br><button type="submit">Add Game</button></form><br><a href="/admin">Back to Admin</a></body>
       </html>
     `);
@@ -1528,8 +1522,7 @@ app.get('/admin/results', isAdmin, (req, res) => {
       res.send(`<!DOCTYPE html><html lang="en"><head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="/favicon-v3.png">
-<link rel="apple-touch-icon" href="/favicon-v3.png">
+<link rel="icon" href="/favicon.ico?v=31">
         <title>Set Results</title></head><body><h1>Set Results (Admin)</h1>${html || '<p>No games</p>'}<a href="/admin">Back to Admin</a></body></html>`);
     }
   );
@@ -1610,8 +1603,7 @@ app.get('/admin/stats', isAdmin, async (req, res) => {
     <head>
       <title>Admin Stats</title>
       <link rel="stylesheet" href="/css/style.css">
-      <link rel="icon" type="image/png" href="/favicon-v3.png">
-<link rel="apple-touch-icon" href="/favicon-v3.png">
+     <link rel="icon" href="/favicon.ico?v=31">
     </head>
     <body>
       <div class="page-wrap">
@@ -1679,8 +1671,8 @@ app.get('/update-user', requireLogin, (req, res) => {
       <!DOCTYPE html>
       <html lang="en">
       <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Update User</title></head>
-<link rel="icon" type="image/png" href="/favicon-v3.png">
-<link rel="apple-touch-icon" href="/favicon-v3.png">      <body><h1>Update User</h1><form action="/update-user" method="POST"><label>Username:<input type="text" name="username" value="${row.username}"></label><br><br><label>Password:<input type="password" name="password" placeholder="Use Change Password page"></label><br><br><button type="submit">Update</button></form></body>
+<link rel="icon" href="/favicon.ico?v=31">
+   <body><h1>Update User</h1><form action="/update-user" method="POST"><label>Username:<input type="text" name="username" value="${row.username}"></label><br><br><label>Password:<input type="password" name="password" placeholder="Use Change Password page"></label><br><br><button type="submit">Update</button></form></body>
       </html>
     `);
   });

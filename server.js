@@ -1349,14 +1349,32 @@ app.get('/leagues', requireLogin, (req, res) => {
       if (err) return res.send('Error loading leagues');
 
       const active = req.session.activeLeagueId;
+
       const list = rows.map(r => `
         <div class="league-card">
           <div class="league-title">${r.name}</div>
           <div class="league-meta"><b>Join Code:</b> ${r.join_code}</div>
+
           ${active === r.id ? `<div class="league-badge">Active League</div>` : ''}
+
           <div class="league-actions">
-            ${active === r.id ? '' : `<form method="POST" action="/league/switch" style="display:inline;"><input type="hidden" name="league_id" value="${r.id}"><button type="submit">Set as Active</button></form>`}
-            <a class="secondary-btn" href="/leaderboard/${r.id}">League Leaderboard</a>
+            ${active === r.id ? '' : `
+              <form method="POST" action="/league/switch" style="display:inline;">
+                <input type="hidden" name="league_id" value="${r.id}">
+                <button type="submit">Set as Active</button>
+              </form>
+            `}
+
+            <a class="secondary-btn" href="/leaderboard/${r.id}">
+              League Leaderboard
+            </a>
+
+            <button
+              type="button"
+              onclick="copyLeagueLink('${r.join_code}')"
+              class="secondary-btn">
+              Copy Invite Link
+            </button>
           </div>
         </div>
       `).join('');
@@ -1367,22 +1385,93 @@ app.get('/leagues', requireLogin, (req, res) => {
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="/favicon.ico?v=31">         <title>Friend Leagues</title>
+          <link rel="icon" href="/favicon.ico?v=31">
+          <title>Friend Leagues</title>
           <link rel="stylesheet" href="/css/style.css">
         </head>
+
         <body>
           <div class="page-wrap">
             <div class="section-title">My Friend Leagues</div>
-            <div class="section-subtitle">Create a league, join one, and compete with friends</div>
-            <div class="top-nav"><a href="/">Home</a><a href="/games">Games</a><a href="/leaderboard">Global Leaderboard</a><a href="/profile/${req.session.userId}">My Profile</a></div>
-            <div class="status-pill">Current Mode: ${active ? `Friend League Active (ID: ${active})` : 'Global'} ${active ? ` | <a href="/league/clear">Back to Global</a>` : ''}</div>
-            <div class="leagues-grid">${list || `<div class="league-card"><div class="league-title">No leagues yet</div><div class="league-meta">Create one or join one below.</div></div>`}</div>
-            <div class="form-card"><h3>Create League</h3><p>Start a private World Cup competition and invite friends with a join code.</p><form method="POST" action="/league/create"><input name="name" placeholder="League name" required><button type="submit">Create League</button></form></div>
-            <div class="form-card"><h3>Join League</h3><p>Enter a join code to join an existing friend league.</p><form method="POST" action="/league/join"><input name="join_code" placeholder="Join code" required><button type="submit">Join League</button></form></div>
+            <div class="section-subtitle">
+              Create a league, join one, and compete with friends
+            </div>
+
+            <div class="top-nav">
+              <a href="/">Home</a>
+              <a href="/games">Games</a>
+              <a href="/leaderboard">Global Leaderboard</a>
+              <a href="/profile/${req.session.userId}">My Profile</a>
+            </div>
+
+            <div class="status-pill">
+              Current Mode:
+              ${active ? `Friend League Active (ID: ${active})` : 'Global'}
+              ${active ? ` | <a href="/league/clear">Back to Global</a>` : ''}
+            </div>
+
+            <div class="leagues-grid">
+              ${list || `
+                <div class="league-card">
+                  <div class="league-title">No leagues yet</div>
+                  <div class="league-meta">Create one or join one below.</div>
+                </div>
+              `}
+            </div>
+
+            <div class="form-card">
+              <h3>Create League</h3>
+              <p>Start a private World Cup competition and invite friends with a join code.</p>
+              <form method="POST" action="/league/create">
+                <input name="name" placeholder="League name" required>
+                <button type="submit">Create League</button>
+              </form>
+            </div>
+
+            <div class="form-card">
+              <h3>Join League</h3>
+              <p>Enter a join code to join an existing friend league.</p>
+              <form method="POST" action="/league/join">
+                <input name="join_code" placeholder="Join code" required>
+                <button type="submit">Join League</button>
+              </form>
+            </div>
           </div>
+
+          <script>
+            function copyLeagueLink(code) {
+              const url = window.location.origin + '/join/' + code;
+              navigator.clipboard.writeText(url);
+              alert('Invite link copied!');
+            }
+          </script>
         </body>
         </html>
       `);
+    }
+  );
+});
+
+app.get('/join/:code', requireLogin, (req, res) => {
+  const code = String(req.params.code || '').trim().toUpperCase();
+
+  db.get(
+    `SELECT id FROM leagues WHERE join_code = ?`,
+    [code],
+    (err, league) => {
+      if (err || !league) {
+        return res.send('League not found');
+      }
+
+      db.run(
+        `INSERT OR IGNORE INTO league_members (league_id, user_id)
+         VALUES (?, ?)`,
+        [league.id, req.session.userId],
+        () => {
+          req.session.activeLeagueId = league.id;
+          res.redirect('/leagues');
+        }
+      );
     }
   );
 });

@@ -907,6 +907,9 @@ app.get('/leaderboard', (req, res) => {
         <div class="podium-place">🥈</div>
         <div class="podium-name">${top3[1].username}</div>
         <div class="podium-points">${top3[1].total_points} pts</div>
+        <div class="podium-credits">
+  ${top3[0].credits_left} credits
+</div>
       </div>
     ` : ''}
 
@@ -915,6 +918,9 @@ app.get('/leaderboard', (req, res) => {
         <div class="podium-place">🥇</div>
         <div class="podium-name">${top3[0].username}</div>
         <div class="podium-points">${top3[0].total_points} pts</div>
+        <div class="podium-credits">
+  ${top3[0].credits_left} credits
+</div>
       </div>
     ` : ''}
 
@@ -923,16 +929,19 @@ app.get('/leaderboard', (req, res) => {
         <div class="podium-place">🥉</div>
         <div class="podium-name">${top3[2].username}</div>
         <div class="podium-points">${top3[2].total_points} pts</div>
+        <div class="podium-credits">
+  ${top3[0].credits_left} credits
+</div>
       </div>
     ` : ''}
 
   </div>
 `;
-    const tableRows = rows.map((r, index) => {
+    const tableRows = rest.map((r, index) => {
       const isMe = req.session.userId === r.id;
       return `
         <tr class="${isMe ? 'highlight-me' : ''}">
-          <td class="rank-cell">${index + 1}</td>
+          <td class="rank-cell">${index + 4}</td>
           <td><a href="/profile/${r.id}">${r.username}</a>${isMe ? ' (me)' : ''}</td>
           <td class="points-cell">${r.total_points}</td>
           <td>${r.credits_left ?? 0}</td>

@@ -829,3 +829,10 @@ tr:nth-child(even) {
   margin-top: 6px;
   font-weight: 700;
 }
+
+.podium-credits {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  opacity: 0.8;
+}

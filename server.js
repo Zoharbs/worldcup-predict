@@ -1562,24 +1562,22 @@ app.post('/league/delete', requireLogin, (req, res) => {
         );
 
         db.run(
-          `DELETE FROM leagues WHERE id = ?`,
-          [leagueId],
-          (err2) => {
+  `DELETE FROM leagues WHERE id = ?`,
+  [leagueId],
+  (err2) => {
 
-            if (err2) {
-              db.run('ROLLBACK');
-              return res.send('Error deleting league');
-            }
+    if (err2) {
+      db.run('ROLLBACK');
+      return res.send('Error deleting league');
+    }
 
-            if (req.session.activeLeagueId === leagueId) {
-              req.session.activeLeagueId = null;
-            }
+    req.session.activeLeagueId = null;
 
-            db.run('COMMIT');
-
-            res.redirect('/leagues');
-          }
-        );
+    db.run('COMMIT', () => {
+      res.redirect('/leagues');
+    });
+  }
+);
       });
     }
   );

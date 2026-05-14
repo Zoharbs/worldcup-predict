@@ -780,3 +780,52 @@ tr:nth-child(even) {
   font-weight: 800;
   margin-top: 6px;
 }
+
+.podium-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 18px;
+  margin: 30px 0 40px;
+  flex-wrap: wrap;
+}
+
+.podium-card {
+  min-width: 170px;
+  padding: 22px 18px;
+  border-radius: 24px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+}
+
+.podium-card.gold {
+  background: linear-gradient(180deg, #f3d57a, #b8891e);
+  color: #16110a;
+  transform: scale(1.08);
+}
+
+.podium-card.silver {
+  background: linear-gradient(180deg, #d9dde5, #8c96a5);
+  color: #111;
+}
+
+.podium-card.bronze {
+  background: linear-gradient(180deg, #d79a6a, #8a4d25);
+  color: #111;
+}
+
+.podium-place {
+  font-size: 42px;
+}
+
+.podium-name {
+  margin-top: 10px;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.podium-points {
+  margin-top: 6px;
+  font-weight: 700;
+}

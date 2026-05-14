@@ -1337,6 +1337,62 @@ app.get('/league/clear', (req, res) => {
   res.redirect('/games');
 });
 
+app.post('/league/delete', requireLogin, (req, res) => {
+  const leagueId = Number(req.body.league_id);
+
+  if (!Number.isInteger(leagueId) || leagueId <= 0) {
+    return res.send('Invalid league id');
+  }
+
+  db.get(
+    `SELECT * FROM leagues WHERE id = ?`,
+    [leagueId],
+    (err, league) => {
+
+      if (err) {
+        console.error(err);
+        return res.send('Database error');
+      }
+
+      if (!league) {
+        return res.send('League not found');
+      }
+
+      if (league.owner_user_id !== req.session.userId) {
+        return res.send('Only owner can delete');
+      }
+
+      db.run(
+        `DELETE FROM league_members WHERE league_id = ?`,
+        [leagueId],
+        (err2) => {
+
+          if (err2) {
+            console.error(err2);
+            return res.send('Error deleting members');
+          }
+
+          db.run(
+            `DELETE FROM leagues WHERE id = ?`,
+            [leagueId],
+            (err3) => {
+
+              if (err3) {
+                console.error(err3);
+                return res.send('Error deleting league');
+              }
+
+              req.session.activeLeagueId = null;
+
+              res.redirect('/leagues');
+            }
+          );
+        }
+      );
+    }
+  );
+});
+
 app.get('/leagues', requireLogin, (req, res) => {
   db.all(
     `SELECT l.id, l.name, l.join_code
@@ -1533,55 +1589,7 @@ app.get('/leaderboard/:leagueId', requireLogin, (req, res) => {
   );
 });
 
-app.post('/league/delete', requireLogin, (req, res) => {
-  const leagueId = Number(req.body.league_id);
 
-  if (!Number.isInteger(leagueId) || leagueId <= 0) {
-    return res.send('Invalid league id');
-  }
-
-  db.get(
-    `SELECT owner_user_id FROM leagues WHERE id = ?`,
-    [leagueId],
-    (err, league) => {
-
-      if (err || !league) {
-        return res.send('League not found');
-      }
-
-      if (league.owner_user_id !== req.session.userId) {
-        return res.send('Only league owner can delete league');
-      }
-
-      db.serialize(() => {
-        db.run('BEGIN');
-
-        db.run(
-          `DELETE FROM league_members WHERE league_id = ?`,
-          [leagueId]
-        );
-
-        db.run(
-  `DELETE FROM leagues WHERE id = ?`,
-  [leagueId],
-  (err2) => {
-
-    if (err2) {
-      db.run('ROLLBACK');
-      return res.send('Error deleting league');
-    }
-
-    req.session.activeLeagueId = null;
-
-    db.run('COMMIT', () => {
-      res.redirect('/leagues');
-    });
-  }
-);
-      });
-    }
-  );
-});
 
 
 

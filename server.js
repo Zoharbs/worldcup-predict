@@ -1368,7 +1368,18 @@ app.get('/leagues', requireLogin, (req, res) => {
             <a class="secondary-btn" href="/leaderboard/${r.id}">
               League Leaderboard
             </a>
+<form
+  method="POST"
+  action="/league/delete"
+  style="display:inline;"
+  onsubmit="return confirm('Delete this league?');">
 
+  <input type="hidden" name="league_id" value="${r.id}">
+
+  <button type="submit" class="auth-btn danger">
+    Delete League
+  </button>
+</form>
             <button
               type="button"
               onclick="copyLeagueLink('${r.join_code}')"
@@ -1521,6 +1532,60 @@ app.get('/leaderboard/:leagueId', requireLogin, (req, res) => {
     }
   );
 });
+
+app.post('/league/delete', requireLogin, (req, res) => {
+  const leagueId = Number(req.body.league_id);
+
+  if (!Number.isInteger(leagueId) || leagueId <= 0) {
+    return res.send('Invalid league id');
+  }
+
+  db.get(
+    `SELECT owner_user_id FROM leagues WHERE id = ?`,
+    [leagueId],
+    (err, league) => {
+
+      if (err || !league) {
+        return res.send('League not found');
+      }
+
+      if (league.owner_user_id !== req.session.userId) {
+        return res.send('Only league owner can delete league');
+      }
+
+      db.serialize(() => {
+        db.run('BEGIN');
+
+        db.run(
+          `DELETE FROM league_members WHERE league_id = ?`,
+          [leagueId]
+        );
+
+        db.run(
+          `DELETE FROM leagues WHERE id = ?`,
+          [leagueId],
+          (err2) => {
+
+            if (err2) {
+              db.run('ROLLBACK');
+              return res.send('Error deleting league');
+            }
+
+            if (req.session.activeLeagueId === leagueId) {
+              req.session.activeLeagueId = null;
+            }
+
+            db.run('COMMIT');
+
+            res.redirect('/leagues');
+          }
+        );
+      });
+    }
+  );
+});
+
+
 
 // =========================
 // ADMIN

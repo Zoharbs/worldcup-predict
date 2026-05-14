@@ -876,7 +876,11 @@ app.get('/leaderboard', (req, res) => {
     FROM users u
     LEFT JOIN bets b ON b.user_id = u.id
     GROUP BY u.id, u.username, u.credits_left
-    ORDER BY total_points DESC, u.username ASC
+    ORDER BY
+  total_points DESC,
+  exact_hits DESC,
+  credits_used ASC,
+  username ASC
   `;
 
   db.all(sql, [], (err, rows) => {

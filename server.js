@@ -712,26 +712,24 @@ app.get('/', (req, res) => {
  <link rel="stylesheet" href="/css/style.css">
       <title>Predict Worldcup</title>
     </head>
-    <div id="helpModal" class="modal-overlay">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeHelpModal()">×</button>
-    <h2>How to Play</h2>
-    <p>Predict World Cup matches, spend credits wisely, and compete on the leaderboard.</p>
-    <p><b>Exact score:</b> 3 points</p>
-    <p><b>Correct winner/draw:</b> 1 point</p>
-    <p><b>Wrong prediction:</b> 0 points</p>
-    <a href="/help" class="auth-btn secondary">Full Rules</a>
-  </div>
+    <div id="helpOverlay" class="help-overlay">
+  <button class="help-close" onclick="closeHelpOverlay()">×</button>
+
+  <iframe
+    src="/help"
+    class="help-frame"
+    frameborder="0">
+  </iframe>
 </div>
 
 <script>
-  function closeHelpModal() {
-    document.getElementById('helpModal').style.display = 'none';
-    localStorage.setItem('seenHelpModal', 'true');
+  function closeHelpOverlay() {
+    document.getElementById('helpOverlay').style.display = 'none';
+    localStorage.setItem('seenHelpOverlay', 'true');
   }
 
-  if (localStorage.getItem('seenHelpModal') === 'true') {
-    document.getElementById('helpModal').style.display = 'none';
+  if (localStorage.getItem('seenHelpOverlay') === 'true') {
+    document.getElementById('helpOverlay').style.display = 'none';
   }
 </script>
     <body>

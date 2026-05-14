@@ -176,8 +176,9 @@ async function ensureAdminUser() {
 
 function requireLogin(req, res, next) {
   if (!req.session.userId) {
-    return res.status(401).send('You must login first');
+    return res.redirect('/login?error=Please login first');
   }
+
   next();
 }
 
@@ -501,10 +502,22 @@ app.post('/register', async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
 
     db.run(
-      `INSERT INTO users (username, password, is_admin, credits_left, knockout_bonus_given)
-       VALUES (?, ?, 0, 100, 0)`,
-      [username, hash],
-      () => res.redirect('/')
+  `INSERT INTO users (username, password, is_admin, credits_left, knockout_bonus_given)
+   VALUES (?, ?, 0, 100, 0)`,
+  [username, passwordHash],
+  function (err2) {
+
+    if (err2) {
+      return res.send('Error creating user');
+    }
+
+    req.session.userId = this.lastID;
+    req.session.username = username;
+    req.session.isAdmin = 0;
+    req.session.activeLeagueId = null;
+
+    res.redirect('/');
+  }
     );
   });
 });
@@ -552,7 +565,11 @@ app.post('/login', (req, res) => {
     req.session.username = row.username;
     req.session.isAdmin = row.is_admin;
     req.session.activeLeagueId = null;
-
+if (req.session.pendingJoinCode) {
+  const code = req.session.pendingJoinCode;
+  req.session.pendingJoinCode = null;
+  return res.redirect('/join/' + code);
+}
     res.redirect('/');
   });
 });
@@ -1337,60 +1354,23 @@ app.get('/league/clear', (req, res) => {
   res.redirect('/games');
 });
 
-app.post('/league/delete', requireLogin, (req, res) => {
+app.post('/league/delete', isAdmin, async (req, res) => {
   const leagueId = Number(req.body.league_id);
 
   if (!Number.isInteger(leagueId) || leagueId <= 0) {
     return res.send('Invalid league id');
   }
 
-  db.get(
-    `SELECT * FROM leagues WHERE id = ?`,
-    [leagueId],
-    (err, league) => {
+  try {
+    await pool.query(`DELETE FROM league_members WHERE league_id = $1`, [leagueId]);
+    await pool.query(`DELETE FROM leagues WHERE id = $1`, [leagueId]);
 
-      if (err) {
-        console.error(err);
-        return res.send('Database error');
-      }
-
-      if (!league) {
-        return res.send('League not found');
-      }
-
-      if (league.owner_user_id !== req.session.userId) {
-        return res.send('Only owner can delete');
-      }
-
-      db.run(
-        `DELETE FROM league_members WHERE league_id = ?`,
-        [leagueId],
-        (err2) => {
-
-          if (err2) {
-            console.error(err2);
-            return res.send('Error deleting members');
-          }
-
-          db.run(
-            `DELETE FROM leagues WHERE id = ?`,
-            [leagueId],
-            (err3) => {
-
-              if (err3) {
-                console.error(err3);
-                return res.send('Error deleting league');
-              }
-
-              req.session.activeLeagueId = null;
-
-              res.redirect('/leagues');
-            }
-          );
-        }
-      );
-    }
-  );
+    req.session.activeLeagueId = null;
+    res.redirect('/leagues');
+  } catch (err) {
+    console.error(err);
+    res.send('Error deleting league');
+  }
 });
 
 app.get('/leagues', requireLogin, (req, res) => {
@@ -1424,24 +1404,24 @@ app.get('/leagues', requireLogin, (req, res) => {
             <a class="secondary-btn" href="/leaderboard/${r.id}">
               League Leaderboard
             </a>
-<form
-  method="POST"
-  action="/league/delete"
-  style="display:inline;"
-  onsubmit="return confirm('Delete this league?');">
 
-  <input type="hidden" name="league_id" value="${r.id}">
-
-  <button type="submit" class="auth-btn danger">
-    Delete League
-  </button>
-</form>
             <button
               type="button"
               onclick="copyLeagueLink('${r.join_code}')"
               class="secondary-btn">
               Copy Invite Link
             </button>
+
+            ${req.session.isAdmin === 1 ? `
+              <form
+                method="POST"
+                action="/league/delete"
+                style="display:inline;"
+                onsubmit="return confirm('Delete this league?');">
+                <input type="hidden" name="league_id" value="${r.id}">
+                <button type="submit" class="auth-btn danger">Delete League</button>
+              </form>
+            ` : ''}
           </div>
         </div>
       `).join('');
@@ -1508,8 +1488,14 @@ app.get('/leagues', requireLogin, (req, res) => {
           <script>
             function copyLeagueLink(code) {
               const url = window.location.origin + '/join/' + code;
-              navigator.clipboard.writeText(url);
-              alert('Invite link copied!');
+
+              navigator.clipboard.writeText(url)
+                .then(function () {
+                  alert('Invite link copied!');
+                })
+                .catch(function () {
+                  prompt('Copy this invite link:', url);
+                });
             }
           </script>
         </body>
@@ -1519,8 +1505,14 @@ app.get('/leagues', requireLogin, (req, res) => {
   );
 });
 
-app.get('/join/:code', requireLogin, (req, res) => {
+
+app.get('/join/:code', (req, res) => {
   const code = String(req.params.code || '').trim().toUpperCase();
+
+  if (!req.session.userId) {
+    req.session.pendingJoinCode = code;
+    return res.redirect('/login');
+  }
 
   db.get(
     `SELECT id FROM leagues WHERE join_code = ?`,
@@ -1531,10 +1523,16 @@ app.get('/join/:code', requireLogin, (req, res) => {
       }
 
       db.run(
-        `INSERT OR IGNORE INTO league_members (league_id, user_id)
-         VALUES (?, ?)`,
+        `INSERT INTO league_members (league_id, user_id)
+         VALUES (?, ?)
+         ON CONFLICT (league_id, user_id) DO NOTHING`,
         [league.id, req.session.userId],
-        () => {
+        (err2) => {
+          if (err2) {
+            console.error(err2);
+            return res.send('Error joining league');
+          }
+
           req.session.activeLeagueId = league.id;
           res.redirect('/leagues');
         }

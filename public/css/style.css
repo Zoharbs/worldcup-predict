@@ -713,3 +713,38 @@ tr:nth-child(even) {
   margin-top: 14px;
   color: var(--muted);
 }
+
+.next-match-countdown {
+  width: fit-content;
+  margin: 16px auto 0;
+  padding: 12px 20px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.16);
+
+  background: linear-gradient(135deg, rgba(229,185,71,0.22), rgba(8,122,82,0.22));
+
+  color: var(--gold-light);
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+
+  box-shadow: 0 10px 26px rgba(0,0,0,0.28);
+}
+
+.next-match-countdown::before {
+  content: "⏳ ";
+}
+
+.next-match-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.next-match-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(229,185,71,0.16), transparent 45%);
+  pointer-events: none;
+}

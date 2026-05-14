@@ -692,6 +692,16 @@ app.get('/help', (req, res) => {
 // =========================
 
 app.get('/', (req, res) => {
+
+  db.get(
+    `
+    SELECT *
+    FROM games
+    WHERE status = 'future'
+    ORDER BY game_date ASC, game_time ASC
+    LIMIT 1
+    `,
+    (err, nextGame) => {
   let greeting;
   let menu = '';
 
@@ -718,7 +728,31 @@ app.get('/', (req, res) => {
       </div>
     `;
   }
+const nextMatchHtml = nextGame
+  ? `
+    <div class="next-match-card">
+      <div class="next-match-title">Next Match</div>
 
+      <div class="next-match-teams">
+        <span class="team">
+          ${nextGame.home_logo ? `<img src="${nextGame.home_logo}" class="team-logo">` : ''}
+          ${nextGame.home_team}
+        </span>
+
+        <span class="vs">vs</span>
+
+        <span class="team">
+          ${nextGame.away_logo ? `<img src="${nextGame.away_logo}" class="team-logo">` : ''}
+          ${nextGame.away_team}
+        </span>
+      </div>
+
+      <div class="next-match-time">
+        ${nextGame.game_date} • ${nextGame.game_time}
+      </div>
+    </div>
+  `
+  : '';
   res.send(`
     <!DOCTYPE html>
     <html lang="en">
@@ -773,7 +807,7 @@ app.get('/', (req, res) => {
         <div class="home-box">
           <h1>Predict WorldCup</h1>
           <p class="description">Join friend leagues, predict World Cup matches, and spend your credits wisely.</p>
-
+          ${nextMatchHtml}
           <div class="buttons">
             <a href="/help"><button>How to Play</button></a>
             <a href="/games"><button>Games</button></a>
@@ -789,6 +823,8 @@ app.get('/', (req, res) => {
     </body>
     </html>
   `);
+      }
+  );
 });
 
 // =========================

@@ -754,7 +754,13 @@ app.get('/', (req, res) => {
             </div>
 
             <div class="next-match-time">
-              ${nextGame.game_date} • ${nextGame.game_time}
+  ${nextGame.game_date} • ${nextGame.game_time}
+</div>
+
+            <div
+              class="next-match-countdown"
+              data-date="${nextGame.game_date}"
+              data-time="${nextGame.game_time}">
             </div>
           </div>
         `
@@ -810,15 +816,49 @@ app.get('/', (req, res) => {
           </div>
 
           <script>
-            function closeHelpOverlay() {
-              document.getElementById('helpOverlay').style.display = 'none';
-              localStorage.setItem('seenHelpOverlay', 'true');
-            }
+  function closeHelpOverlay() {
+    document.getElementById('helpOverlay').style.display = 'none';
+    localStorage.setItem('seenHelpOverlay', 'true');
+  }
 
-            if (localStorage.getItem('seenHelpOverlay') === 'true') {
-              document.getElementById('helpOverlay').style.display = 'none';
-            }
-          </script>
+  if (localStorage.getItem('seenHelpOverlay') === 'true') {
+    document.getElementById('helpOverlay').style.display = 'none';
+  }
+
+  function updateNextMatchCountdown() {
+    const el = document.querySelector('.next-match-countdown');
+
+    if (!el) return;
+
+    const date = el.dataset.date;
+    const time = el.dataset.time;
+
+    const target = new Date(date + 'T' + time + ':00');
+
+    const diff = target - new Date();
+
+    if (diff <= 0) {
+      el.textContent = 'Betting closed / Match started';
+      return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+
+    el.textContent =
+      'Starts in ' +
+      days + 'd ' +
+      String(hours).padStart(2, '0') + 'h ' +
+      String(minutes).padStart(2, '0') + 'm ' +
+      String(seconds).padStart(2, '0') + 's';
+  }
+
+  updateNextMatchCountdown();
+
+  setInterval(updateNextMatchCountdown, 1000);
+</script>
         </body>
         </html>
       `);

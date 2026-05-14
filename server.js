@@ -691,179 +691,207 @@ app.get('/help', (req, res) => {
 // HOME
 // =========================
 
-app.get('/', (req, res) => {
-  db.get(
-    `
-    SELECT *
-    FROM games
-    WHERE status = 'future'
-    ORDER BY game_date ASC, game_time ASC
-    LIMIT 1
-    `,
-    [],
-    (err, nextGame) => {
-      if (err) {
-        console.error(err);
-        nextGame = null;
-      }
+app.get('/', async (req, res) => {
+  try {
+    const nextGameResult = await pool.query(`
+      SELECT *
+      FROM games
+      WHERE status = 'future'
+      ORDER BY game_date ASC, game_time ASC
+      LIMIT 1
+    `);
 
-      let greeting;
-      let menu = '';
+    const nextGame = nextGameResult.rows[0];
 
-      if (req.session.username) {
-        const user = `<a href="/profile/${req.session.userId}">${req.session.username}</a>`;
-        greeting = `Welcome ${user}`;
+    let myRankHtml = '';
 
-        menu = `
-          <div class="auth-links">
-            <a href="/leagues" class="auth-btn secondary">Friend Leagues</a>
-            <a href="/profile/${req.session.userId}" class="auth-btn secondary">My Profile</a>
-            <a href="/my-bets" class="auth-btn secondary">My Bets</a>
-            <a href="/change-password" class="auth-btn secondary">Change Password</a>
-            ${req.session.isAdmin === 1 ? `<a href="/admin" class="auth-btn secondary">Admin</a>` : ''}
-            <a href="/logout" class="auth-btn danger">Logout</a>
+    if (req.session.userId) {
+      const rankResult = await pool.query(`
+        SELECT id, username, total_points, rank
+        FROM (
+          SELECT
+            u.id,
+            u.username,
+            COALESCE(SUM(b.points_won), 0) AS total_points,
+            RANK() OVER (
+              ORDER BY COALESCE(SUM(b.points_won), 0) DESC, u.username ASC
+            ) AS rank
+          FROM users u
+          LEFT JOIN bets b ON b.user_id = u.id
+          GROUP BY u.id, u.username
+        ) ranked
+        WHERE id = $1
+      `, [req.session.userId]);
+
+      const me = rankResult.rows[0];
+
+      if (me) {
+        myRankHtml = `
+          <div class="my-rank-card">
+            <div class="my-rank-label">Your Rank</div>
+            <div class="my-rank-value">#${me.rank}</div>
+            <div class="my-rank-points">${me.total_points} points</div>
           </div>
         `;
-      } else {
-        greeting = 'Welcome guest, please register or login';
-        menu = `
-          <div class="auth-links">
-            <a href="/register" class="auth-btn register">Register</a>
-            <a href="/login" class="auth-btn login">Login</a>
-          </div>
-        `;
       }
-
-      const nextMatchHtml = nextGame
-        ? `
-          <div class="next-match-card">
-            <div class="next-match-title">Next Match</div>
-
-            <div class="next-match-teams">
-              <span class="team">
-                ${nextGame.home_logo ? `<img src="${nextGame.home_logo}" class="team-logo">` : ''}
-                ${nextGame.home_team}
-              </span>
-
-              <span class="vs">vs</span>
-
-              <span class="team">
-                ${nextGame.away_logo ? `<img src="${nextGame.away_logo}" class="team-logo">` : ''}
-                ${nextGame.away_team}
-              </span>
-            </div>
-
-            <div class="next-match-time">
-  ${nextGame.game_date} • ${nextGame.game_time}
-</div>
-
-            <div
-              class="next-match-countdown"
-              data-date="${nextGame.game_date}"
-              data-time="${nextGame.game_time}">
-            </div>
-          </div>
-        `
-        : '';
-
-      res.send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <link rel="icon" href="/favicon.ico?v=31">
-          <link rel="stylesheet" href="/css/style.css">
-          <title>Predict Worldcup</title>
-        </head>
-
-        <body>
-          <div id="helpOverlay" class="help-overlay">
-            <div class="help-popup">
-              <button class="help-close" onclick="closeHelpOverlay()">×</button>
-
-              <h2>How to Play</h2>
-              <p>Predict World Cup match scores and earn points.</p>
-
-              <p><b>Exact score:</b> 3 points</p>
-              <p><b>Correct winner / draw:</b> 1 point</p>
-              <p><b>Wrong prediction:</b> 0 points</p>
-
-              <p>You start with 100 credits. Use them wisely.</p>
-
-              <a href="/help" class="auth-btn secondary">Full Rules</a>
-            </div>
-          </div>
-
-          <div class="center-page">
-            <div class="home-box">
-              <h1>Predict WorldCup</h1>
-              <p class="description">Join friend leagues, predict World Cup matches, and spend your credits wisely.</p>
-
-              ${nextMatchHtml}
-
-              <div class="buttons">
-                <a href="/help"><button>How to Play</button></a>
-                <a href="/games"><button>Games</button></a>
-                <a href="/leaderboard"><button>Leaderboard</button></a>
-              </div>
-
-              <div class="home-user-area">
-                <h3>${greeting}</h3>
-                ${menu}
-              </div>
-            </div>
-          </div>
-
-          <script>
-  function closeHelpOverlay() {
-    document.getElementById('helpOverlay').style.display = 'none';
-    localStorage.setItem('seenHelpOverlay', 'true');
-  }
-
-  if (localStorage.getItem('seenHelpOverlay') === 'true') {
-    document.getElementById('helpOverlay').style.display = 'none';
-  }
-
-  function updateNextMatchCountdown() {
-    const el = document.querySelector('.next-match-countdown');
-
-    if (!el) return;
-
-    const date = el.dataset.date;
-    const time = el.dataset.time;
-
-    const target = new Date(date + 'T' + time + ':00');
-
-    const diff = target - new Date();
-
-    if (diff <= 0) {
-      el.textContent = 'Betting closed / Match started';
-      return;
     }
 
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-    const minutes = Math.floor((diff / (1000 * 60)) % 60);
-    const seconds = Math.floor((diff / 1000) % 60);
+    let greeting;
+    let menu = '';
 
-    el.textContent =
-      'Starts in ' +
-      days + 'd ' +
-      String(hours).padStart(2, '0') + 'h ' +
-      String(minutes).padStart(2, '0') + 'm ' +
-      String(seconds).padStart(2, '0') + 's';
-  }
+    if (req.session.username) {
+      const user = `<a href="/profile/${req.session.userId}">${req.session.username}</a>`;
+      greeting = `Welcome ${user}`;
 
-  updateNextMatchCountdown();
-
-  setInterval(updateNextMatchCountdown, 1000);
-</script>
-        </body>
-        </html>
-      `);
+      menu = `
+        <div class="auth-links">
+          <a href="/leagues" class="auth-btn secondary">Friend Leagues</a>
+          <a href="/profile/${req.session.userId}" class="auth-btn secondary">My Profile</a>
+          <a href="/my-bets" class="auth-btn secondary">My Bets</a>
+          <a href="/change-password" class="auth-btn secondary">Change Password</a>
+          ${req.session.isAdmin === 1 ? `<a href="/admin" class="auth-btn secondary">Admin</a>` : ''}
+          <a href="/logout" class="auth-btn danger">Logout</a>
+        </div>
+      `;
+    } else {
+      greeting = 'Welcome guest, please register or login';
+      menu = `
+        <div class="auth-links">
+          <a href="/register" class="auth-btn register">Register</a>
+          <a href="/login" class="auth-btn login">Login</a>
+        </div>
+      `;
     }
-  );
+
+    const nextMatchHtml = nextGame
+      ? `
+        <div class="next-match-card">
+          <div class="next-match-title">Next Match</div>
+
+          <div class="next-match-teams">
+            <span class="team">
+              ${nextGame.home_logo ? `<img src="${nextGame.home_logo}" class="team-logo">` : ''}
+              ${nextGame.home_team}
+            </span>
+
+            <span class="vs">vs</span>
+
+            <span class="team">
+              ${nextGame.away_logo ? `<img src="${nextGame.away_logo}" class="team-logo">` : ''}
+              ${nextGame.away_team}
+            </span>
+          </div>
+
+          <div class="next-match-time">
+            ${nextGame.game_date} • ${nextGame.game_time}
+          </div>
+
+          <div
+            class="next-match-countdown"
+            data-date="${nextGame.game_date}"
+            data-time="${nextGame.game_time}">
+          </div>
+        </div>
+      `
+      : '';
+
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" href="/favicon.ico?v=31">
+        <link rel="stylesheet" href="/css/style.css">
+        <title>Predict Worldcup</title>
+      </head>
+
+      <body>
+        <div id="helpOverlay" class="help-overlay">
+          <div class="help-popup">
+            <button class="help-close" onclick="closeHelpOverlay()">×</button>
+
+            <h2>How to Play</h2>
+            <p>Predict World Cup match scores and earn points.</p>
+
+            <p><b>Exact score:</b> 3 points</p>
+            <p><b>Correct winner / draw:</b> 1 point</p>
+            <p><b>Wrong prediction:</b> 0 points</p>
+
+            <p>You start with 100 credits. Use them wisely.</p>
+
+            <a href="/help" class="auth-btn secondary">Full Rules</a>
+          </div>
+        </div>
+
+        <div class="center-page">
+          <div class="home-box">
+            <h1>Predict WorldCup</h1>
+            <p class="description">Join friend leagues, predict World Cup matches, and spend your credits wisely.</p>
+
+            ${nextMatchHtml}
+            ${myRankHtml}
+
+            <div class="buttons">
+              <a href="/help"><button>How to Play</button></a>
+              <a href="/games"><button>Games</button></a>
+              <a href="/leaderboard"><button>Leaderboard</button></a>
+            </div>
+
+            <div class="home-user-area">
+              <h3>${greeting}</h3>
+              ${menu}
+            </div>
+          </div>
+        </div>
+
+        <script>
+          function closeHelpOverlay() {
+            document.getElementById('helpOverlay').style.display = 'none';
+            localStorage.setItem('seenHelpOverlay', 'true');
+          }
+
+          if (localStorage.getItem('seenHelpOverlay') === 'true') {
+            document.getElementById('helpOverlay').style.display = 'none';
+          }
+
+          function updateNextMatchCountdown() {
+            const el = document.querySelector('.next-match-countdown');
+            if (!el) return;
+
+            const date = el.dataset.date;
+            const time = el.dataset.time;
+            const target = new Date(date + 'T' + time + ':00');
+            const diff = target - new Date();
+
+            if (diff <= 0) {
+              el.textContent = 'Betting closed / Match started';
+              return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((diff / (1000 * 60)) % 60);
+            const seconds = Math.floor((diff / 1000) % 60);
+
+            el.textContent =
+              'Starts in ' +
+              days + 'd ' +
+              String(hours).padStart(2, '0') + 'h ' +
+              String(minutes).padStart(2, '0') + 'm ' +
+              String(seconds).padStart(2, '0') + 's';
+          }
+
+          updateNextMatchCountdown();
+          setInterval(updateNextMatchCountdown, 1000);
+        </script>
+      </body>
+      </html>
+    `);
+  } catch (err) {
+    console.error(err);
+    res.send('Error loading home page');
+  }
 });
 
 // =========================

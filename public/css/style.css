@@ -748,3 +748,35 @@ tr:nth-child(even) {
   background: radial-gradient(circle at top, rgba(229,185,71,0.16), transparent 45%);
   pointer-events: none;
 }
+
+.my-rank-card {
+  width: fit-content;
+  margin: 18px auto 28px;
+  padding: 14px 26px;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.28);
+}
+
+.my-rank-label {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.my-rank-value {
+  color: var(--gold-light);
+  font-size: 42px;
+  font-weight: 900;
+  line-height: 1;
+  margin-top: 6px;
+}
+
+.my-rank-points {
+  color: var(--text);
+  font-weight: 800;
+  margin-top: 6px;
+}

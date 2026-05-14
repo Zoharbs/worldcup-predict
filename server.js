@@ -692,7 +692,6 @@ app.get('/help', (req, res) => {
 // =========================
 
 app.get('/', (req, res) => {
-
   db.get(
     `
     SELECT *
@@ -701,129 +700,129 @@ app.get('/', (req, res) => {
     ORDER BY game_date ASC, game_time ASC
     LIMIT 1
     `,
+    [],
     (err, nextGame) => {
-  let greeting;
-  let menu = '';
-
-  if (req.session.username) {
-    const user = `<a href="/profile/${req.session.userId}">${req.session.username}</a>`;
-    greeting = `Welcome ${user}`;
-
-    menu = `
-      <div class="auth-links">
-        <a href="/leagues" class="auth-btn secondary">Friend Leagues</a>
-        <a href="/profile/${req.session.userId}" class="auth-btn secondary">My Profile</a>
-        <a href="/my-bets" class="auth-btn secondary">My Bets</a>
-        <a href="/change-password" class="auth-btn secondary">Change Password</a>
-        ${req.session.isAdmin === 1 ? `<a href="/admin" class="auth-btn secondary">Admin</a>` : ''}
-        <a href="/logout" class="auth-btn danger">Logout</a>
-      </div>
-    `;
-  } else {
-    greeting = 'Welcome guest, please register or login';
-    menu = `
-      <div class="auth-links">
-        <a href="/register" class="auth-btn register">Register</a>
-        <a href="/login" class="auth-btn login">Login</a>
-      </div>
-    `;
-  }
-const nextMatchHtml = nextGame
-  ? `
-    <div class="next-match-card">
-      <div class="next-match-title">Next Match</div>
-
-      <div class="next-match-teams">
-        <span class="team">
-          ${nextGame.home_logo ? `<img src="${nextGame.home_logo}" class="team-logo">` : ''}
-          ${nextGame.home_team}
-        </span>
-
-        <span class="vs">vs</span>
-
-        <span class="team">
-          ${nextGame.away_logo ? `<img src="${nextGame.away_logo}" class="team-logo">` : ''}
-          ${nextGame.away_team}
-        </span>
-      </div>
-
-      <div class="next-match-time">
-        ${nextGame.game_date} • ${nextGame.game_time}
-      </div>
-    </div>
-  `
-  : '';
-  res.send(`
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="/favicon.ico?v=31">    
- <link rel="stylesheet" href="/css/style.css">
-      <title>Predict Worldcup</title>
-    </head>
-  <div id="helpOverlay" class="help-overlay">
-  <div class="help-popup">
-    <button class="help-close" onclick="closeHelpOverlay()">×</button>
-
-    <h2>How to Play</h2>
-    <p>Predict World Cup match scores and earn points.</p>
-
-    <p><b>Exact score:</b> 3 points</p>
-    <p><b>Correct winner / draw:</b> 1 point</p>
-    <p><b>Wrong prediction:</b> 0 points</p>
-
-    <p>You start with 100 credits. Use them wisely.</p>
-
-    <a href="/help" class="auth-btn secondary">Full Rules</a>
-  </div>
-</div>
-
-<script>
-  function closeHelpOverlay() {
-    document.getElementById('helpOverlay').style.display = 'none';
-    localStorage.setItem('seenHelpOverlay', 'true');
-  }
-
-  if (localStorage.getItem('seenHelpOverlay') === 'true') {
-    document.getElementById('helpOverlay').style.display = 'none';
-  }
-</script>
-</div>
-
-<script>
-  function closeHelpOverlay() {
-    document.getElementById('helpOverlay').style.display = 'none';
-    localStorage.setItem('seenHelpOverlay', 'true');
-  }
-
-  if (localStorage.getItem('seenHelpOverlay') === 'true') {
-    document.getElementById('helpOverlay').style.display = 'none';
-  }
-</script>
-    <body>
-      <div class="center-page">
-        <div class="home-box">
-          <h1>Predict WorldCup</h1>
-          <p class="description">Join friend leagues, predict World Cup matches, and spend your credits wisely.</p>
-          ${nextMatchHtml}
-          <div class="buttons">
-            <a href="/help"><button>How to Play</button></a>
-            <a href="/games"><button>Games</button></a>
-            <a href="/leaderboard"><button>Leaderboard</button></a>
-          </div>
-
-          <div class="home-user-area">
-            <h3>${greeting}</h3>
-            ${menu}
-          </div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `);
+      if (err) {
+        console.error(err);
+        nextGame = null;
       }
+
+      let greeting;
+      let menu = '';
+
+      if (req.session.username) {
+        const user = `<a href="/profile/${req.session.userId}">${req.session.username}</a>`;
+        greeting = `Welcome ${user}`;
+
+        menu = `
+          <div class="auth-links">
+            <a href="/leagues" class="auth-btn secondary">Friend Leagues</a>
+            <a href="/profile/${req.session.userId}" class="auth-btn secondary">My Profile</a>
+            <a href="/my-bets" class="auth-btn secondary">My Bets</a>
+            <a href="/change-password" class="auth-btn secondary">Change Password</a>
+            ${req.session.isAdmin === 1 ? `<a href="/admin" class="auth-btn secondary">Admin</a>` : ''}
+            <a href="/logout" class="auth-btn danger">Logout</a>
+          </div>
+        `;
+      } else {
+        greeting = 'Welcome guest, please register or login';
+        menu = `
+          <div class="auth-links">
+            <a href="/register" class="auth-btn register">Register</a>
+            <a href="/login" class="auth-btn login">Login</a>
+          </div>
+        `;
+      }
+
+      const nextMatchHtml = nextGame
+        ? `
+          <div class="next-match-card">
+            <div class="next-match-title">Next Match</div>
+
+            <div class="next-match-teams">
+              <span class="team">
+                ${nextGame.home_logo ? `<img src="${nextGame.home_logo}" class="team-logo">` : ''}
+                ${nextGame.home_team}
+              </span>
+
+              <span class="vs">vs</span>
+
+              <span class="team">
+                ${nextGame.away_logo ? `<img src="${nextGame.away_logo}" class="team-logo">` : ''}
+                ${nextGame.away_team}
+              </span>
+            </div>
+
+            <div class="next-match-time">
+              ${nextGame.game_date} • ${nextGame.game_time}
+            </div>
+          </div>
+        `
+        : '';
+
+      res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link rel="icon" href="/favicon.ico?v=31">
+          <link rel="stylesheet" href="/css/style.css">
+          <title>Predict Worldcup</title>
+        </head>
+
+        <body>
+          <div id="helpOverlay" class="help-overlay">
+            <div class="help-popup">
+              <button class="help-close" onclick="closeHelpOverlay()">×</button>
+
+              <h2>How to Play</h2>
+              <p>Predict World Cup match scores and earn points.</p>
+
+              <p><b>Exact score:</b> 3 points</p>
+              <p><b>Correct winner / draw:</b> 1 point</p>
+              <p><b>Wrong prediction:</b> 0 points</p>
+
+              <p>You start with 100 credits. Use them wisely.</p>
+
+              <a href="/help" class="auth-btn secondary">Full Rules</a>
+            </div>
+          </div>
+
+          <div class="center-page">
+            <div class="home-box">
+              <h1>Predict WorldCup</h1>
+              <p class="description">Join friend leagues, predict World Cup matches, and spend your credits wisely.</p>
+
+              ${nextMatchHtml}
+
+              <div class="buttons">
+                <a href="/help"><button>How to Play</button></a>
+                <a href="/games"><button>Games</button></a>
+                <a href="/leaderboard"><button>Leaderboard</button></a>
+              </div>
+
+              <div class="home-user-area">
+                <h3>${greeting}</h3>
+                ${menu}
+              </div>
+            </div>
+          </div>
+
+          <script>
+            function closeHelpOverlay() {
+              document.getElementById('helpOverlay').style.display = 'none';
+              localStorage.setItem('seenHelpOverlay', 'true');
+            }
+
+            if (localStorage.getItem('seenHelpOverlay') === 'true') {
+              document.getElementById('helpOverlay').style.display = 'none';
+            }
+          </script>
+        </body>
+        </html>
+      `);
+    }
   );
 });
 

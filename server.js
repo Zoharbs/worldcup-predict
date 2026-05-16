@@ -477,7 +477,7 @@ app.post('/register', async (req, res) => {
   if (!username || !password) {
     error = 'Username and password are required';
   } else if (!isStrongPassword(password)) {
-    error = 'Password must be at least 8 characters and include uppercase, lowercase, and a number';
+    error = 'Password must be at least 8 characters and include uppercase, lowercase, and a number--סיסמה חייבת להיות לפחות באורך 8 תוים, להכיל אות גדולה, אות קטנה ומספר.';
   }
 
   if (error) {

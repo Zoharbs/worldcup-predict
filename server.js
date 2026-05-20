@@ -176,6 +176,9 @@ async function ensureAdminUser() {
 
 function requireLogin(req, res, next) {
   if (!req.session.userId) {
+
+    req.session.returnTo = req.originalUrl;
+
     return res.redirect('/login?error=Please login first');
   }
 
@@ -565,13 +568,21 @@ app.post('/login', (req, res) => {
     req.session.userId = row.id;
     req.session.username = row.username;
     req.session.isAdmin = row.is_admin;
+
+const returnTo = req.session.returnTo || '/';
+
+req.session.returnTo = null;
+
+return res.redirect(returnTo);
+
+
     req.session.activeLeagueId = null;
 if (req.session.pendingJoinCode) {
   const code = req.session.pendingJoinCode;
   req.session.pendingJoinCode = null;
   return res.redirect('/join/' + code);
 }
-    res.redirect('/');
+   
   });
 });
 

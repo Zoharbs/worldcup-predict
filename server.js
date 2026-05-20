@@ -587,14 +587,61 @@ if (req.session.pendingJoinCode) {
 });
 
 app.get('/change-password', requireLogin, (req, res) => {
+  if (req.session.isAdmin === 1) {
+    db.all(`SELECT id, username FROM users ORDER BY username ASC`, [], (err, users) => {
+      if (err) return res.send('Error loading users');
+
+      const options = users.map(u => `
+        <option value="${u.id}" ${u.id === req.session.userId ? 'selected' : ''}>
+          ${u.username}
+        </option>
+      `).join('');
+
+      return res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link rel="icon" href="/favicon.ico?v=31">
+          <title>Change Password</title>
+          <link rel="stylesheet" href="/css/style.css">
+        </head>
+        <body>
+          <div class="page-wrap">
+            <div class="form-card">
+              <h1>Change Password</h1>
+
+              <form method="POST" action="/change-password">
+                <select name="target_user_id" required>
+                  ${options}
+                </select><br><br>
+
+                <input type="password" name="new_password" placeholder="New password" required><br><br>
+                <input type="password" name="confirm_password" placeholder="Confirm new password" required><br><br>
+
+                <button type="submit">Update Password</button>
+              </form>
+
+              <br>
+              <a href="/">Back Home</a>
+            </div>
+          </div>
+        </body>
+        </html>
+      `);
+    });
+  }
+
   res.send(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Change Password</title>
- <link rel="icon" href="/favicon.ico?v=31">
+      <link rel="icon" href="/favicon.ico?v=31">
+      <title>Change Password</title>
+      <link rel="stylesheet" href="/css/style.css">
     </head>
     <body>
       <div class="page-wrap">
@@ -605,6 +652,7 @@ app.get('/change-password', requireLogin, (req, res) => {
             <input type="password" name="current_password" placeholder="Current password" required><br><br>
             <input type="password" name="new_password" placeholder="New password" required><br><br>
             <input type="password" name="confirm_password" placeholder="Confirm new password" required><br><br>
+
             <button type="submit">Update Password</button>
           </form>
 
@@ -618,35 +666,76 @@ app.get('/change-password', requireLogin, (req, res) => {
 });
 
 app.post('/change-password', requireLogin, async (req, res) => {
-  const userId = req.session.userId;
+  const isAdminUser = req.session.isAdmin === 1;
+
+  const targetUserId = isAdminUser
+    ? Number(req.body.target_user_id)
+    : Number(req.session.userId);
+
   const currentPassword = String(req.body.current_password || '');
   const newPassword = String(req.body.new_password || '');
   const confirmPassword = String(req.body.confirm_password || '');
 
-  if (!currentPassword || !newPassword || !confirmPassword) {
+  if (!Number.isInteger(targetUserId) || targetUserId <= 0) {
+    return res.send('Invalid user');
+  }
+
+  if (!newPassword || !confirmPassword) {
     return res.send('All fields are required');
   }
 
   if (newPassword !== confirmPassword) {
-    return res.send('New passwords do not match');
+    return res.send(`
+      <script>
+        alert("New passwords do not match");
+        window.history.back();
+      </script>
+    `);
   }
 
   if (!isStrongPassword(newPassword)) {
-    return res.send('Password must be at least 8 characters and include uppercase, lowercase, and a number');
+    return res.send(`
+      <script>
+        alert("Password must be at least 8 characters and include uppercase, lowercase, and a number");
+        window.history.back();
+      </script>
+    `);
   }
 
   try {
-    const result = await pool.query(`SELECT password FROM users WHERE id = $1`, [userId]);
-    const user = result.rows[0];
-    if (!user) return res.send('User not found');
+    if (!isAdminUser) {
+      const result = await pool.query(
+        `SELECT password FROM users WHERE id = $1`,
+        [req.session.userId]
+      );
 
-    const ok = await bcrypt.compare(currentPassword, user.password);
-    if (!ok) return res.send('Current password is wrong');
+      const user = result.rows[0];
+      if (!user) return res.send('User not found');
+
+      const ok = await bcrypt.compare(currentPassword, user.password);
+      if (!ok) {
+        return res.send(`
+          <script>
+            alert("Current password is wrong");
+            window.history.back();
+          </script>
+        `);
+      }
+    }
 
     const newHash = await bcrypt.hash(newPassword, 10);
-    await pool.query(`UPDATE users SET password = $1 WHERE id = $2`, [newHash, userId]);
 
-    res.redirect(`/profile/${userId}`);
+    await pool.query(
+      `UPDATE users SET password = $1 WHERE id = $2`,
+      [newHash, targetUserId]
+    );
+
+    res.send(`
+      <script>
+        alert("Password updated successfully");
+        window.location.href = "/";
+      </script>
+    `);
   } catch (err) {
     console.error(err);
     res.send('Error updating password');

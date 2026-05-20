@@ -676,12 +676,12 @@ app.get('/help', (req, res) => {
           ${req.session.userId ? `<a href="/profile/${req.session.userId}">My Profile</a>` : ''}
         </div>
 
-        <div class="help-card"><h3 class="help-card-title">What is World Cup Challenge?</h3><p class="help-text">World Cup Challenge is a prediction game for the FIFA World Cup. Predict match scores, spend your credits wisely, and compete for the top spot in the global leaderboard or inside your friend leagues.</p></div>
+        <div class="help-card"><h3 class="help-card-title">What is World Cup Challenge?</h3><p class="help-text">World Cup Challenge is a prediction game for the FIFA World Cup. Predict match scores, spend your credits wisely, and compete for the top spot in the global leaderboard or inside your private leagues.</p></div>
         <div class="help-card"><h3 class="help-card-title">Credits System</h3><p class="help-text">Each player starts the tournament with <b>100 credits</b>.</p><p class="help-text">When the knockout stage begins, every player receives an additional <b>+50 credits</b>.</p><p class="help-text">Credits are limited, so every decision matters.</p></div>
         <div class="help-card"><h3 class="help-card-title">How to Bet</h3><p class="help-text">For each match, you choose the final score you predict and how many credits you want to place on that prediction.</p></div>
         <div class="help-card"><h3 class="help-card-title">Points System</h3><p class="help-text"><b>Exact score:</b> 3 points</p><p class="help-text"><b>Correct winner or draw:</b> 1 point</p><p class="help-text"><b>Wrong prediction:</b> 0 points</p></div>
         <div class="help-card"><h3 class="help-card-title">Tie-Breaker</h3><p class="help-text">If two players finish with the same number of points, the higher rank goes to the player who used fewer total credits.</p></div>
-        <div class="help-card"><h3 class="help-card-title">Friend Leagues</h3><p class="help-text">You can create or join private friend leagues and compete against specific groups.</p></div>
+        <div class="help-card"><h3 class="help-card-title">Private Leagues</h3><p class="help-text">You can create or join private leagues and compete against specific groups.</p></div>
       </div>
     </body>
     </html>
@@ -717,7 +717,7 @@ app.get('/', (req, res) => {
 
         menu = `
           <div class="auth-links">
-            <a href="/leagues" class="auth-btn secondary">Friend Leagues</a>
+            <a href="/leagues" class="auth-btn secondary">Private Leagues</a>
             <a href="/profile/${req.session.userId}" class="auth-btn secondary">My Profile</a>
             <a href="/my-bets" class="auth-btn secondary">My Bets</a>
             <a href="/change-password" class="auth-btn secondary">Change Password</a>
@@ -799,7 +799,7 @@ app.get('/', (req, res) => {
           <div class="center-page">
             <div class="home-box">
               <h1>Predict WorldCup</h1>
-              <p class="description">Join friend leagues, predict World Cup matches, and spend your credits wisely.</p>
+              <p class="description">Join private leagues, predict World Cup matches, and spend your credits wisely.</p>
 
               ${nextMatchHtml}
 
@@ -1138,7 +1138,7 @@ app.get('/profile/:id', (req, res) => {
 
                   <div class="profile-links">
                     <a href="/leaderboard">Leaderboard</a>
-                    <a href="/leagues">Friend Leagues</a>
+                    <a href="/leagues">Private Leagues</a>
                     <a href="/games">Games</a>
                     <a href="/">Home</a>
                   </div>
@@ -1201,7 +1201,7 @@ app.get('/games', (req, res) => {
           <div class="filters-nav">
             <a href="/" class="filter-link">Home</a>
             <a href="/leaderboard" class="filter-link">Leaderboard</a>
-            ${isLoggedIn ? `<a href="/leagues" class="filter-link">Friend Leagues</a>` : ''}
+            ${isLoggedIn ? `<a href="/leagues" class="filter-link">Private Leagues</a>` : ''}
             ${isLoggedIn ? `<a href="/profile/${req.session.userId}" class="filter-link">My Profile</a>` : ''}
             ${isLoggedIn ? `<a href="/my-bets" class="filter-link">My Bets</a>` : ''}
             ${activeLeagueId ? `<a href="/leaderboard/${activeLeagueId}" class="filter-link">Active League Leaderboard</a>` : ''}
@@ -1491,7 +1491,7 @@ app.get('/my-bets', requireLogin, (req, res) => {
 });
 
 // =========================
-// FRIEND LEAGUES
+// private LEAGUES
 // =========================
 
 app.post('/league/create', requireLogin, async (req, res) => {
@@ -1627,15 +1627,15 @@ app.get('/leagues', requireLogin, (req, res) => {
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <link rel="icon" href="/favicon.ico?v=31">
-          <title>Friend Leagues</title>
+          <title>private Leagues</title>
           <link rel="stylesheet" href="/css/style.css">
         </head>
 
         <body>
           <div class="page-wrap">
-            <div class="section-title">My Friend Leagues</div>
+            <div class="section-title">My private Leagues</div>
             <div class="section-subtitle">
-              Create a league, join one, and compete with friends
+              Create a league, join one, and compete with privates
             </div>
 
             <div class="top-nav">
@@ -1647,7 +1647,7 @@ app.get('/leagues', requireLogin, (req, res) => {
 
             <div class="status-pill">
               Current Mode:
-              ${active ? `Friend League Active (ID: ${active})` : 'Global'}
+              ${active ? `private League Active (ID: ${active})` : 'Global'}
               ${active ? ` | <a href="/league/clear">Back to Global</a>` : ''}
             </div>
 
@@ -1662,7 +1662,7 @@ app.get('/leagues', requireLogin, (req, res) => {
 
             <div class="form-card">
               <h3>Create League</h3>
-              <p>Start a private World Cup competition and invite friends with a join code.</p>
+              <p>Start a private World Cup competition and invite privates with a join code.</p>
               <form method="POST" action="/league/create">
                 <input name="name" placeholder="League name" required>
                 <button type="submit">Create League</button>
@@ -1671,7 +1671,7 @@ app.get('/leagues', requireLogin, (req, res) => {
 
             <div class="form-card">
               <h3>Join League</h3>
-              <p>Enter a join code to join an existing friend league.</p>
+              <p>Enter a join code to join an existing private league.</p>
               <form method="POST" action="/league/join">
                 <input name="join_code" placeholder="Join code" required>
                 <button type="submit">Join League</button>
@@ -1790,7 +1790,7 @@ app.get('/leaderboard/:leagueId', requireLogin, (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">     
   <title>League Leaderboard</title><link rel="stylesheet" href="/css/style.css"></head>
-          <body><div class="page-wrap"><div class="section-title">League Leaderboard</div><div class="section-subtitle">${league.name}</div><div class="top-nav"><a href="/leagues">Friend Leagues</a><a href="/games">Games</a><a href="/leaderboard">Global Leaderboard</a></div><div class="table-card"><table><tr><th>Rank</th><th>User</th><th>Points</th><th>Credits Left</th></tr>${tableRows || '<tr><td colspan="4">No data</td></tr>'}</table></div></div></body>
+          <body><div class="page-wrap"><div class="section-title">League Leaderboard</div><div class="section-subtitle">${league.name}</div><div class="top-nav"><a href="/leagues">Private Leagues</a><a href="/games">Games</a><a href="/leaderboard">Global Leaderboard</a></div><div class="table-card"><table><tr><th>Rank</th><th>User</th><th>Points</th><th>Credits Left</th></tr>${tableRows || '<tr><td colspan="4">No data</td></tr>'}</table></div></div></body>
           </html>
         `);
       });

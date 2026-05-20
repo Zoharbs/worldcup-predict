@@ -588,7 +588,7 @@ if (req.session.pendingJoinCode) {
 
 app.get('/change-password', requireLogin, (req, res) => {
   if (req.session.isAdmin === 1) {
-    db.all(`SELECT id, username FROM users ORDER BY username ASC`, [], (err, users) => {
+    return db.all(`SELECT id, username FROM users ORDER BY username ASC`, [], (err, users) => {
       if (err) return res.send('Error loading users');
 
       const options = users.map(u => `

@@ -722,8 +722,7 @@ app.post('/change-password', requireLogin, async (req, res) => {
         `);
       }
     }
-
-    const newHash = await bcrypt.hash(newPassword, 10);
+const newHash = await bcrypt.hash(newPassword, 10);
 
     await pool.query(
       `UPDATE users SET password = $1 WHERE id = $2`,

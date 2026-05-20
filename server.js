@@ -1340,11 +1340,18 @@ app.post('/bet', requireLogin, async (req, res) => {
       return res.send('Betting is closed for this match');
     }
 
-    const maxCreditsForStage = getStageMaxCredits(game.stage);
-    if (creditsUsed > maxCreditsForStage) {
-      await client.query('ROLLBACK');
-      return res.send(`Maximum credits for this stage is ${maxCreditsForStage}`);
-    }
+   const maxCreditsForStage = getStageMaxCredits(game.stage);
+
+if (creditsUsed > maxCreditsForStage) {
+  await client.query('ROLLBACK');
+
+  return res.send(`
+    <script>
+      alert("Maximum credits for this stage is ${maxCreditsForStage}");
+      window.history.back();
+    </script>
+  `);
+}
 
     const userResult = await client.query(`SELECT id, credits_left FROM users WHERE id = $1 FOR UPDATE`, [userId]);
     const user = userResult.rows[0];
@@ -1360,7 +1367,12 @@ app.post('/bet', requireLogin, async (req, res) => {
 
     if (creditsUsed > effectiveCreditsLeft) {
       await client.query('ROLLBACK');
-      return res.send('Not enough credits');
+      return res.send(`
+    <script>
+      alert("Not enough credits}");
+      window.history.back();
+    </script>
+  `);
     }
 
     const newCreditsLeft = effectiveCreditsLeft - creditsUsed;

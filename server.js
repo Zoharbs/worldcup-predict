@@ -472,25 +472,44 @@ app.post('/register', async (req, res) => {
   const username = String(req.body.username || '').trim();
   const password = String(req.body.password || '');
 
-  let error = null;
-
   if (!username || !password) {
-    error = 'Username and password are required';
-  } else if (!isStrongPassword(password)) {
-    error = 'Password must be at least 8 characters and include uppercase, lowercase, and a number--סיסמה חייבת להיות לפחות באורך 8 תוים, להכיל אות גדולה, אות קטנה ומספר.';
-  }
-
-  if (error) {
     return res.send(`
       <script>
-        alert("${error}");
+        alert("Username and password are required");
         window.location.href = "/register";
       </script>
     `);
   }
 
-  db.get(`SELECT id FROM users WHERE username = ?`, [username], async (err, existingUser) => {
-    if (existingUser) {
+  if (!isStrongPassword(password)) {
+    return res.send(`
+      <script>
+        alert("Password must be at least 8 characters and include uppercase, lowercase, and a number");
+        window.location.href = "/register";
+      </script>
+    `);
+  }
+
+  try {
+    const hash = await bcrypt.hash(password, 10);
+
+    const result = await pool.query(
+      `INSERT INTO users (username, password, is_admin, credits_left, knockout_bonus_given)
+       VALUES ($1, $2, 0, 100, 0)
+       RETURNING id, username, is_admin`,
+      [username, hash]
+    );
+
+    const user = result.rows[0];
+
+    req.session.userId = user.id;
+    req.session.username = user.username;
+    req.session.isAdmin = user.is_admin;
+    req.session.activeLeagueId = null;
+
+    res.redirect('/');
+  } catch (err) {
+    if (err.code === '23505') {
       return res.send(`
         <script>
           alert("Username already exists");
@@ -499,27 +518,9 @@ app.post('/register', async (req, res) => {
       `);
     }
 
-    const hash = await bcrypt.hash(password, 10);
-
-    db.run(
-  `INSERT INTO users (username, password, is_admin, credits_left, knockout_bonus_given)
-   VALUES (?, ?, 0, 100, 0)`,
-  [username, passwordHash],
-  function (err2) {
-
-    if (err2) {
-      return res.send('Error creating user');
-    }
-
-    req.session.userId = this.lastID;
-    req.session.username = username;
-    req.session.isAdmin = 0;
-    req.session.activeLeagueId = null;
-
-    res.redirect('/');
+    console.error(err);
+    res.send('Error creating user');
   }
-    );
-  });
 });
 
 app.get('/login', (req, res) => {

@@ -709,3 +709,39 @@ tr:nth-child(even) {
     flex-wrap: wrap;
   }
 }
+
+@media (max-width: 768px) {
+  .buttons,
+  .auth-links {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  .buttons button,
+  .auth-links .auth-btn {
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  .teams-row,
+  .bet-teams,
+  .next-match-teams {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    font-size: 15px !important;
+    gap: 8px !important;
+  }
+
+  .team {
+    flex-direction: row !important;
+    white-space: nowrap !important;
+    width: auto !important;
+    font-size: 15px !important;
+  }
+
+  .team-logo {
+    width: 22px !important;
+    height: 22px !important;
+  }
+}

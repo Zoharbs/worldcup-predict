@@ -541,6 +541,8 @@ app.post('/login', (req, res) => {
   const username = String(req.body.username || '').trim();
   const password = String(req.body.password || '');
 
+
+
   db.get(`SELECT * FROM users WHERE username = ?`, [username], async (err, row) => {
     if (err) return res.send('Database error');
 
@@ -750,6 +752,45 @@ const newHash = await bcrypt.hash(newPassword, 10);
     console.error(err);
     res.send('Error updating password');
   }
+});
+
+app.get('/forgot-password', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="icon" href="/favicon.ico?v=31">
+      <title>Forgot Password</title>
+      <link rel="stylesheet" href="/css/style.css">
+    </head>
+
+    <body>
+      <div class="center-page">
+        <div class="form-card">
+
+          <h1>Forgot Password</h1>
+
+          <p class="description">
+            If you forgot your password, contact the site admin and include your username.
+          </p>
+
+          <div style="margin-top:20px;">
+            <a class="auth-btn" href="https://wa.me/972547588597">
+              Contact on WhatsApp
+            </a>
+          </div>
+
+          <div style="margin-top:12px;">
+            <a href="/login">Back to login</a>
+          </div>
+
+        </div>
+      </div>
+    </body>
+    </html>
+  `);
 });
 
 app.get('/logout', (req, res) => {

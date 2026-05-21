@@ -929,3 +929,8 @@ button:active,
   transform: scale(1.08);
   filter: brightness(1.08);
 }
+.forgot-password-box {
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 15px;
+}

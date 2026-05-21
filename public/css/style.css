@@ -866,3 +866,16 @@ tr:nth-child(even) {
 .install-banner a:hover {
   opacity: 0.8;
 }
+
+.score-input-with-flag {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.guess-flag {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}

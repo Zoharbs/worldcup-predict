@@ -1435,32 +1435,10 @@ app.get('/games', (req, res) => {
                 <form action="/bet" method="POST">
                   <input type="hidden" name="game_id" value="${game.id}">
                   <div class="guess-form-row">
-
-  <div class="score-input-with-flag">
-    <img src="${game.home_logo}" class="guess-flag">
-    <input
-      class="guess-score-input"
-      type="number"
-      name="home_guess"
-      min="0"
-      required
-      value="${alreadyBet ? game.my_home_guess : ''}">
-  </div>
-
-  <div class="guess-colon">:</div>
-
-  <div class="score-input-with-flag">
-    <img src="${game.away_logo}" class="guess-flag">
-    <input
-      class="guess-score-input"
-      type="number"
-      name="away_guess"
-      min="0"
-      required
-      value="${alreadyBet ? game.my_away_guess : ''}">
-  </div>
-
-</div>
+                    <input class="guess-score-input" type="number" name="home_guess" min="0" required value="${alreadyBet ? game.my_home_guess : ''}">
+                    <div class="guess-colon">:</div>
+                    <input class="guess-score-input" type="number" name="away_guess" min="0" required value="${alreadyBet ? game.my_away_guess : ''}">
+                  </div>
                   <div style="margin-top: 12px;"><label><b>Credits to bet:</b></label><input type="number" name="credits_used" min="1" required value="${alreadyBet ? (game.my_credits_used ?? 1) : 1}" style="width:80px;"></div>
                   <button class="guess-action-btn" type="submit">${alreadyBet ? 'Update Bet' : 'Submit Bet'}</button>
                 </form>

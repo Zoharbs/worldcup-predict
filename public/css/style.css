@@ -782,3 +782,10 @@ tr:nth-child(even) {
 .games-search-box input {
   width: 100%;
 }
+
+.team-fact {
+  margin-top: 12px;
+  color: var(--gold-light);
+  font-weight: 800;
+  font-size: 18px;
+}

@@ -1449,11 +1449,23 @@ app.get('/games', (req, res) => {
         }
 
         gamesHtml += `
-<div class="game-card" ${gameAnchor} data-search="${game.home_team} ${game.away_team} ${formatStage(game.stage)} ${game.game_date}">          
+<div class="game-card" ${gameAnchor} data-search="<a href="/nation/${encodeURIComponent(game.home_team)}">
+  ${game.home_team}
+</a> <a href="/nation/${encodeURIComponent(game.away_team)}">
+  ${game.away_team}
+</a> ${formatStage(game.stage)} ${game.game_date}">          
             <h3 class="teams-row">
-              <span class="team">${game.home_logo ? `<img src="${game.home_logo}" alt="${game.home_team}" class="team-logo">` : ''}${game.home_team}</span>
+              <span class="team">${game.home_logo ? `<img src="${game.home_logo}" alt="<a href="/nation/${encodeURIComponent(game.home_team)}">
+  ${game.home_team}
+</a>" class="team-logo">` : ''}<a href="/nation/${encodeURIComponent(game.home_team)}">
+  ${game.home_team}
+</a></span>
               <span class="vs">vs</span>
-              <span class="team">${game.away_logo ? `<img src="${game.away_logo}" alt="${game.away_team}" class="team-logo">` : ''}${game.away_team}</span>
+              <span class="team">${game.away_logo ? `<img src="${game.away_logo}" alt="<a href="/nation/${encodeURIComponent(game.away_team)}">
+  ${game.away_team}
+</a>" class="team-logo">` : ''}<a href="/nation/${encodeURIComponent(game.away_team)}">
+  ${game.away_team}
+</a></span>
             </h3>
             <p><b>Competition:</b> ${game.competition_name || 'World Cup 2026'}</p>
             <p><b>Stage:</b> ${formatStage(game.stage)}</p>
@@ -2313,6 +2325,167 @@ app.post('/update-user', requireLogin, async (req, res) => {
     res.send('Error updating user');
   }
 });
+
+// =========================
+// Nation page
+// =========================
+
+app.get('/nation/:name', async (req, res) => {
+  const nationName = req.params.name;
+
+  const nationFacts = {
+    Argentina: '🏆 FIFA World Cup 2022 Winner',
+    France: '🏆 FIFA World Cup 2018 Winner',
+    Spain: '🏆 FIFA World Cup 2010 Winner',
+    Germany: '🏆 FIFA World Cup 2014 Winner',
+    Brazil: '⭐ 5x World Champion',
+    Croatia: '🥈 Runner-up in 2018',
+    Morocco: '🔥 Historic 2022 Semi-Finalist'
+  };
+
+  const fact = nationFacts[nationName] || '';
+
+  try {
+    const gamesResult = await pool.query(
+      `
+      SELECT *
+      FROM games
+      WHERE home_team = $1 OR away_team = $1
+      ORDER BY game_date ASC, game_time ASC
+      `,
+      [nationName]
+    );
+
+    const games = gamesResult.rows;
+
+    if (games.length === 0) {
+      return res.send('Nation not found');
+    }
+
+    const logo =
+      games[0].home_team === nationName
+        ? games[0].home_logo
+        : games[0].away_logo;
+
+    let wins = 0;
+    let draws = 0;
+    let losses = 0;
+    let goalsFor = 0;
+    let goalsAgainst = 0;
+
+    games.forEach(g => {
+      if (g.status !== 'finished') return;
+
+      const isHome = g.home_team === nationName;
+      const teamGoals = isHome ? g.home_score : g.away_score;
+      const oppGoals = isHome ? g.away_score : g.home_score;
+
+      goalsFor += Number(teamGoals || 0);
+      goalsAgainst += Number(oppGoals || 0);
+
+      if (teamGoals > oppGoals) wins++;
+      else if (teamGoals < oppGoals) losses++;
+      else draws++;
+    });
+
+    const gamesHtml = games.map(g => {
+      const isFinished = g.status === 'finished';
+
+      return `
+        <div class="game-card">
+          <div class="teams-row">
+            <span class="team">
+              ${g.home_logo ? `<img src="${g.home_logo}" class="team-logo">` : ''}
+              ${g.home_team}
+            </span>
+
+            <span class="vs">vs</span>
+
+            <span class="team">
+              ${g.away_logo ? `<img src="${g.away_logo}" class="team-logo">` : ''}
+              ${g.away_team}
+            </span>
+          </div>
+
+          <div class="league-meta">${g.game_date} • ${g.game_time}</div>
+          <div class="league-meta">${formatStage(g.stage)}</div>
+
+          ${
+            isFinished
+              ? `<div class="result-score">${g.home_score} : ${g.away_score}</div>`
+              : `<div class="guess-help">Upcoming Match</div>`
+          }
+        </div>
+      `;
+    }).join('');
+
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" href="/favicon.ico?v=31">
+        <link rel="stylesheet" href="/css/style.css">
+        <title>${nationName}</title>
+      </head>
+
+      <body>
+        <div class="page-wrap">
+          <div class="top-nav">
+            <a href="/">Home</a>
+            <a href="/games">Games</a>
+            <a href="/leaderboard">Leaderboard</a>
+          </div>
+
+          <div class="profile-card">
+            ${logo ? `<img src="${logo}" class="team-logo" style="width:80px;height:80px;">` : ''}
+
+            <h1>${nationName}</h1>
+
+            ${fact ? `<div class="team-fact">${fact}</div>` : ''}
+
+            <div class="profile-stats">
+              <div class="stat-box">
+                <div class="stat-label">Wins</div>
+                <div class="stat-value">${wins}</div>
+              </div>
+
+              <div class="stat-box">
+                <div class="stat-label">Draws</div>
+                <div class="stat-value">${draws}</div>
+              </div>
+
+              <div class="stat-box">
+                <div class="stat-label">Losses</div>
+                <div class="stat-value">${losses}</div>
+              </div>
+
+              <div class="stat-box">
+                <div class="stat-label">Goals For</div>
+                <div class="stat-value">${goalsFor}</div>
+              </div>
+
+              <div class="stat-box">
+                <div class="stat-label">Goals Against</div>
+                <div class="stat-value">${goalsAgainst}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-title" style="font-size:42px;">Matches</div>
+
+          ${gamesHtml}
+        </div>
+      </body>
+      </html>
+    `);
+  } catch (err) {
+    console.error(err);
+    res.send('Error loading nation page');
+  }
+});
+
 
 // =========================
 // DEBUG / CHECK

@@ -587,7 +587,7 @@ if (req.session.pendingJoinCode) {
 });
 
 app.get('/change-password', requireLogin, (req, res) => {
-  if (req.session.isAdmin === 1) {
+  if (Number(req.session.isAdmin) === 1) {
     return db.all(`SELECT id, username FROM users ORDER BY username ASC`, [], (err, users) => {
       if (err) return res.send('Error loading users');
 
@@ -666,7 +666,7 @@ app.get('/change-password', requireLogin, (req, res) => {
 });
 
 app.post('/change-password', requireLogin, async (req, res) => {
-  const isAdminUser = req.session.isAdmin === 1;
+  const isAdminUser = Number(req.session.isAdmin) === 1;
 
   const targetUserId = isAdminUser
     ? Number(req.body.target_user_id)

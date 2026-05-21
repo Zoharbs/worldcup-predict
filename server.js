@@ -792,6 +792,62 @@ app.get('/help', (req, res) => {
   `);
 });
 
+app.get('/install-app', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="icon" href="/favicon.ico?v=31">
+      <link rel="stylesheet" href="/css/style.css">
+      <title>Install App</title>
+    </head>
+
+    <body>
+    
+      <div class="page-wrap">
+        <div class="form-card">
+          <h1>Install Predict WorldCup</h1>
+
+          <p>
+            You can install Predict WorldCup on your phone like a real app.
+          </p>
+
+          <br>
+
+          <h2>📱 iPhone (Safari)</h2>
+
+          <ol style="text-align:left; max-width:500px; margin:auto;">
+            <li>Open this website in Safari</li>
+            <li>Tap the Share button</li>
+            <li>Select <b>Add to Home Screen</b></li>
+            <li>Tap Add</li>
+          </ol>
+
+          <br><br>
+
+          <h2>🤖 Android (Chrome)</h2>
+
+          <ol style="text-align:left; max-width:500px; margin:auto;">
+            <li>Open this website in Chrome</li>
+            <li>Tap the 3 dots menu</li>
+            <li>Select <b>Install App</b></li>
+          </ol>
+
+          <br><br>
+
+          <a href="/" class="auth-btn secondary">
+            Back Home
+          </a>
+        </div>
+      </div>
+    </body>
+    </html>
+  `);
+});
+
+
 // =========================
 // HOME
 // =========================
@@ -884,6 +940,10 @@ app.get('/', (req, res) => {
         </head>
 
         <body>
+        <div class="install-banner">
+  📱 Install Predict WorldCup on your phone
+  <a href="/install-app">Learn how</a>
+</div>
           <div id="helpOverlay" class="help-overlay">
             <div class="help-popup">
               <button class="help-close" onclick="closeHelpOverlay()">×</button>

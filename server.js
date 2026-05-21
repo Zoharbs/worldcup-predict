@@ -801,7 +801,9 @@ app.get('/install-app', (req, res) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <link rel="icon" href="/favicon.ico?v=31">
       <link rel="stylesheet" href="/css/style.css">
-      <title>Install App</title>
+      <title>Predict WorldCup</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947">
     </head>
 
     <body>
@@ -842,6 +844,15 @@ app.get('/install-app', (req, res) => {
           </a>
         </div>
       </div>
+      <script>
+  const isStandalone =
+    window.navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches;
+
+  if (isStandalone && window.location.pathname === '/install-app') {
+    window.location.href = '/';
+  }
+</script>
     </body>
     </html>
   `);

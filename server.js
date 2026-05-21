@@ -1449,7 +1449,7 @@ app.get('/games', (req, res) => {
         }
 
         gamesHtml += `
-          <div class="game-card" ${gameAnchor}>
+<div class="game-card" ${gameAnchor} data-search="${game.home_team} ${game.away_team} ${formatStage(game.stage)} ${game.game_date}">          
             <h3 class="teams-row">
               <span class="team">${game.home_logo ? `<img src="${game.home_logo}" alt="${game.home_team}" class="team-logo">` : ''}${game.home_team}</span>
               <span class="vs">vs</span>

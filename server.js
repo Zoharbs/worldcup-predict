@@ -2488,7 +2488,10 @@ app.get('/nation/:name', async (req, res) => {
               <div class="stat-box">
                 <div class="stat-label">Goals Against</div>
                 <div class="stat-value">${goalsAgainst}</div>
-             ${
+                </div>
+            </div>
+          </div>
+   ${
                 topPredictor
                   ? `
                     <div class="form-card">
@@ -2503,10 +2506,6 @@ app.get('/nation/:name', async (req, res) => {
                   `
                   : ''
               }
-                </div>
-            </div>
-          </div>
-
           <div class="section-title" style="font-size:42px;">Matches</div>
 
           ${gamesHtml}

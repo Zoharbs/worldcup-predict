@@ -1,0 +1,20 @@
+{
+  "name": "Predict WorldCup",
+  "short_name": "WorldCup",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#10161a",
+  "theme_color": "#e5b947",
+  "icons": [
+    {
+      "src": "/favicon-v3.PNG",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-v3.PNG",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

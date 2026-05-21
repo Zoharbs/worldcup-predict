@@ -600,7 +600,10 @@ app.get('/change-password', requireLogin, (req, res) => {
       return res.send(`
         <!DOCTYPE html>
         <html lang="en">
-        <head>
+        <head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947"> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947">
+
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <link rel="icon" href="/favicon.ico?v=31">
@@ -636,7 +639,8 @@ app.get('/change-password', requireLogin, (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html lang="en">
-    <head>
+    <head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947">
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <link rel="icon" href="/favicon.ico?v=31">
@@ -756,7 +760,8 @@ app.get('/help', (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html lang="en">
-    <head>
+    <head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947">
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">
@@ -869,7 +874,8 @@ app.get('/', (req, res) => {
       res.send(`
         <!DOCTYPE html>
         <html lang="en">
-        <head>
+        <head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947">
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <link rel="icon" href="/favicon.ico?v=31">
@@ -958,6 +964,11 @@ app.get('/', (req, res) => {
   updateNextMatchCountdown();
 
   setInterval(updateNextMatchCountdown, 1000);
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js');
+  }
 </script>
         </body>
         </html>
@@ -1052,7 +1063,8 @@ app.get('/leaderboard', (req, res) => {
     res.send(`
       <!DOCTYPE html>
       <html lang="en">
-      <head>
+      <head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">       <title>Leaderboard</title>
@@ -1174,7 +1186,8 @@ app.get('/profile/:id', (req, res) => {
           res.send(`
             <!DOCTYPE html>
             <html lang="en">
-            <head>
+            <head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947">
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
               <link rel="icon" href="/favicon.ico?v=31">
@@ -1382,7 +1395,8 @@ app.get('/games', (req, res) => {
       res.send(`
         <!DOCTYPE html>
         <html lang="en">
-        <head>
+        <head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947">
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">      <title>Game list</title>
@@ -1564,7 +1578,8 @@ app.get('/my-bets', requireLogin, (req, res) => {
     res.send(`
       <!DOCTYPE html>
       <html lang="en">
-      <head>
+      <head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">
@@ -1722,7 +1737,8 @@ app.get('/leagues', requireLogin, (req, res) => {
       res.send(`
         <!DOCTYPE html>
         <html lang="en">
-        <head>
+        <head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947">
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <link rel="icon" href="/favicon.ico?v=31">
@@ -1885,7 +1901,8 @@ app.get('/leaderboard/:leagueId', requireLogin, (req, res) => {
         res.send(`
           <!DOCTYPE html>
           <html lang="en">
-          <head><meta charset="UTF-8">
+          <head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947"><meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">     
   <title>League Leaderboard</title><link rel="stylesheet" href="/css/style.css"></head>
@@ -1935,7 +1952,8 @@ app.get('/admin/users', isAdmin, (req, res) => {
     res.send(`
       <!DOCTYPE html>
       <html lang="en">
-      <head><meta charset="UTF-8">
+      <head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947"><meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">
   <title>Admin Users</title><link rel="stylesheet" href="/css/style.css"></head>
@@ -1988,7 +2006,8 @@ app.get('/admin/add-game', isAdmin, (req, res) => {
     res.send(`
       <!DOCTYPE html>
       <html lang="en">
-      <head><meta charset="UTF-8">
+      <head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947"><meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">     
 <title>Add Game</title></head>
@@ -2026,7 +2045,8 @@ app.get('/admin/results', isAdmin, (req, res) => {
         return `<div><h3>${g.home_team} vs ${g.away_team}</h3><p><b>Competition:</b> ${g.competition_name || 'World Cup 2026'}</p><p>${g.game_date} | ${g.game_time}</p><p><b>Stage:</b> ${formatStage(g.stage)}</p><p><b>Result:</b> ${hasResult ? `${g.home_score}:${g.away_score}` : 'Empty'}</p><form action="/admin/set-result" method="POST"><input type="hidden" name="game_id" value="${g.id}"><input type="number" name="home_score" min="0" required style="width:60px;" value="${hasResult ? g.home_score : ''}"> : <input type="number" name="away_score" min="0" required style="width:60px;" value="${hasResult ? g.away_score : ''}"><button type="submit">Set</button></form></div><hr>`;
       }).join('');
 
-      res.send(`<!DOCTYPE html><html lang="en"><head>
+      res.send(`<!DOCTYPE html><html lang="en"><head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">
@@ -2107,7 +2127,8 @@ app.get('/admin/stats', isAdmin, async (req, res) => {
 
   res.send(`
     <html>
-    <head>
+    <head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947">
       <title>Admin Stats</title>
       <link rel="stylesheet" href="/css/style.css">
      <link rel="icon" href="/favicon.ico?v=31">
@@ -2177,7 +2198,8 @@ app.get('/update-user', requireLogin, (req, res) => {
     res.send(`
       <!DOCTYPE html>
       <html lang="en">
-      <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Update User</title></head>
+      <head> <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#e5b947"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Update User</title></head>
 <link rel="icon" href="/favicon.ico?v=31">
    <body><h1>Update User</h1><form action="/update-user" method="POST"><label>Username:<input type="text" name="username" value="${row.username}"></label><br><br><label>Password:<input type="password" name="password" placeholder="Use Change Password page"></label><br><br><button type="submit">Update</button></form></body>
       </html>

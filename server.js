@@ -1493,7 +1493,7 @@ ${isLoggedIn ? `
   </form>
 ` : ''}
 
-${block}
+
     ${block}
   </div>
 `;

@@ -1478,12 +1478,31 @@ app.get('/games', (req, res) => {
             <h1>All Games</h1>
             ${isLoggedIn ? `<h3 class="muted">Connected as <a href="/profile/${req.session.userId}">${req.session.username}</a> | Credits left: ${creditsLeft}</h3>` : `<h3 class="muted">User not logged in</h3>`}
             ${filterBar}
+            <div class="games-search-box">
+  <input
+    id="gamesSearch"
+    type="text"
+    placeholder="Search team or stage..."
+    oninput="filterGames()"
+  >
+</div>
             ${gamesHtml || '<p>No games to display</p>'}
             <script>
               const el = document.getElementById('today-game');
               if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
             </script>
           </div>
+          <script>
+  function filterGames() {
+    const q = document.getElementById('gamesSearch').value.toLowerCase();
+    const cards = document.querySelectorAll('.game-card');
+
+    cards.forEach(card => {
+      const text = card.dataset.search.toLowerCase();
+      card.style.display = text.includes(q) ? '' : 'none';
+    });
+  }
+</script>
         </body>
         </html>
       `);

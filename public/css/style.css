@@ -740,3 +740,37 @@ tr:nth-child(even) {
     min-width: 130px !important;
   }
 }
+@media (max-width: 768px) {
+  .podium-wrap {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    align-items: end !important;
+    margin: 18px 0 24px !important;
+  }
+
+  .podium-card {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 14px 6px !important;
+    border-radius: 18px !important;
+  }
+
+  .podium-card.gold {
+    transform: none !important;
+  }
+
+  .podium-place {
+    font-size: 28px !important;
+  }
+
+  .podium-name {
+    font-size: 14px !important;
+    word-break: break-word !important;
+  }
+
+  .podium-points,
+  .podium-credits {
+    font-size: 12px !important;
+  }
+}

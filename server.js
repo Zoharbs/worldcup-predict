@@ -87,8 +87,6 @@ await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMES
 await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMP`);
   
 
-
-
 await pool.query(`
     CREATE TABLE IF NOT EXISTS competitions (
       id SERIAL PRIMARY KEY,
@@ -154,6 +152,15 @@ await pool.query(`
       PRIMARY KEY (league_id, user_id)
     )
   `);
+
+  await pool.query(`
+  CREATE TABLE IF NOT EXISTS pinned_matches (
+    user_id INTEGER NOT NULL,
+    game_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, game_id)
+  )
+`);
 }
 
 async function ensureAdminUser() {
@@ -1356,12 +1363,16 @@ app.get('/games', (req, res) => {
           b.home_guess AS my_home_guess,
           b.away_guess AS my_away_guess,
           b.points_won AS my_points,
+          b.credits_used AS my_credits_used,
           b.credits_used AS my_credits_used
+
         FROM games g
         LEFT JOIN competitions c ON c.id = g.competition_id
         LEFT JOIN bets b ON b.game_id = g.id AND b.user_id = ?
+        LEFT JOIN pinned_matches pm
+  ON pm.game_id = g.id AND pm.user_id = ?
         WHERE g.status IN ('future','finished')
-        ORDER BY g.game_date ASC, g.game_time ASC
+ORDER BY is_pinned DESC, g.game_date ASC, g.game_time ASC
       `
       : `
         SELECT g.*, c.name AS competition_name
@@ -1371,8 +1382,7 @@ app.get('/games', (req, res) => {
         ORDER BY g.game_date ASC, g.game_time ASC
       `;
 
-    const params = isLoggedIn ? [userId] : [];
-
+const params = isLoggedIn ? [userId, userId] : [];
     db.all(sql, params, (err, games) => {
       if (err) {
         console.error(err);
@@ -1472,6 +1482,17 @@ app.get('/games', (req, res) => {
     <p><b>Stage:</b> ${formatStage(game.stage)}</p>
     <p>${game.game_date} | ${game.game_time}</p>
 
+${isLoggedIn ? `
+  <form method="POST" action="${Number(game.is_pinned) === 1 ? '/unpin-match' : '/pin-match'}">
+    <input type="hidden" name="game_id" value="${game.id}">
+
+    <button type="submit" class="secondary-btn">
+      ${Number(game.is_pinned) === 1 ? '★ Unpin Match' : '☆ Pin Match'}
+    </button>
+  </form>
+` : ''}
+
+${block}
     ${block}
   </div>
 `;
@@ -1706,6 +1727,35 @@ app.get('/my-bets', requireLogin, (req, res) => {
       </html>
     `);
   });
+});
+
+app.post('/pin-match', requireLogin, async (req, res) => {
+  const gameId = Number(req.body.game_id);
+
+  if (!Number.isInteger(gameId) || gameId <= 0) {
+    return res.send('Invalid game');
+  }
+
+  await pool.query(
+    `INSERT INTO pinned_matches (user_id, game_id)
+     VALUES ($1, $2)
+     ON CONFLICT (user_id, game_id) DO NOTHING`,
+    [req.session.userId, gameId]
+  );
+
+  res.redirect('/games');
+});
+
+app.post('/unpin-match', requireLogin, async (req, res) => {
+  const gameId = Number(req.body.game_id);
+
+  await pool.query(
+    `DELETE FROM pinned_matches
+     WHERE user_id = $1 AND game_id = $2`,
+    [req.session.userId, gameId]
+  );
+
+  res.redirect('/games');
 });
 
 // =========================
@@ -2344,9 +2394,19 @@ app.get('/nation/:name', async (req, res) => {
     Croatia: '🥈 Runner-up in 2018',
     Morocco: '🔥 Historic 2022 Semi-Finalist'
   };
+  const nationTrophies = {
+  Argentina: [1978, 1986, 2022],
+  Brazil: [1958, 1962, 1970, 1994, 2002],
+  France: [1998, 2018],
+  Germany: [1954, 1974, 1990, 2014],
+  Italy: [1934, 1938, 1982, 2006],
+  Spain: [2010],
+  England: [1966],
+  Uruguay: [1930, 1950]
+};
 
-  const fact = nationFacts[nationName] || '';
-
+const fact = nationFacts[nationName] || '';
+const trophies = nationTrophies[nationName] || [];
   try {
     const gamesResult = await pool.query(
       `
@@ -2375,37 +2435,76 @@ app.get('/nation/:name', async (req, res) => {
     );
 
     const topPredictor = topPredictorResult.rows[0];
-    const games = gamesResult.rows;
 
-    if (games.length === 0) {
-      return res.send('Nation not found');
-    }
+const nationThemes = {
+  Argentina: 'theme-argentina',
+  Brazil: 'theme-brazil',
+  France: 'theme-france',
+  Spain: 'theme-spain',
+  Germany: 'theme-germany',
+  England: 'theme-england',
+  Portugal: 'theme-portugal',
+  Netherlands: 'theme-netherlands',
+  Belgium: 'theme-belgium',
+  Italy: 'theme-italy',
+  Croatia: 'theme-croatia',
+  Morocco: 'theme-morocco',
+  USA: 'theme-usa',
+  Mexico: 'theme-mexico',
+  Canada: 'theme-canada',
+  Uruguay: 'theme-uruguay',
+  Colombia: 'theme-colombia',
+  Japan: 'theme-japan',
+  'Korea Republic': 'theme-korea',
+  Australia: 'theme-australia',
+  Switzerland: 'theme-switzerland',
+  Denmark: 'theme-denmark',
+  Poland: 'theme-poland',
+  Serbia: 'theme-serbia',
+  Senegal: 'theme-senegal',
+  Ghana: 'theme-ghana',
+  Nigeria: 'theme-nigeria',
+  Cameroon: 'theme-cameroon',
+  Tunisia: 'theme-tunisia',
+  Egypt: 'theme-egypt',
+  'Saudi Arabia': 'theme-saudi',
+  Iran: 'theme-iran',
+  Qatar: 'theme-qatar'
+};
 
-    const logo =
-      games[0].home_team === nationName
-        ? games[0].home_logo
-        : games[0].away_logo;
+const nationThemeClass = nationThemes[nationName] || '';
 
-    let wins = 0;
-    let draws = 0;
-    let losses = 0;
-    let goalsFor = 0;
-    let goalsAgainst = 0;
+        const games = gamesResult.rows;
 
-    games.forEach(g => {
-      if (g.status !== 'finished') return;
+        if (games.length === 0) {
+          return res.send('Nation not found');
+        }
 
-      const isHome = g.home_team === nationName;
-      const teamGoals = isHome ? g.home_score : g.away_score;
-      const oppGoals = isHome ? g.away_score : g.home_score;
+        const logo =
+          games[0].home_team === nationName
+            ? games[0].home_logo
+            : games[0].away_logo;
 
-      goalsFor += Number(teamGoals || 0);
-      goalsAgainst += Number(oppGoals || 0);
+        let wins = 0;
+        let draws = 0;
+        let losses = 0;
+        let goalsFor = 0;
+        let goalsAgainst = 0;
 
-      if (teamGoals > oppGoals) wins++;
-      else if (teamGoals < oppGoals) losses++;
-      else draws++;
-    });
+        games.forEach(g => {
+          if (g.status !== 'finished') return;
+
+          const isHome = g.home_team === nationName;
+          const teamGoals = isHome ? g.home_score : g.away_score;
+          const oppGoals = isHome ? g.away_score : g.home_score;
+
+          goalsFor += Number(teamGoals || 0);
+          goalsAgainst += Number(oppGoals || 0);
+
+          if (teamGoals > oppGoals) wins++;
+          else if (teamGoals < oppGoals) losses++;
+          else draws++;
+        });
 
     const gamesHtml = games.map(g => {
       const isFinished = g.status === 'finished';
@@ -2449,7 +2548,7 @@ app.get('/nation/:name', async (req, res) => {
         <title>${nationName}</title>
       </head>
 
-      <body>
+      <body class="${nationThemeClass}">
         <div class="page-wrap">
           <div class="top-nav">
             <a href="/">Home</a>
@@ -2463,6 +2562,22 @@ app.get('/nation/:name', async (req, res) => {
             <h1>${nationName}</h1>
 
             ${fact ? `<div class="team-fact">${fact}</div>` : ''}
+
+            ${
+  trophies.length
+    ? `
+      <div class="trophy-cabinet">
+        <div class="trophy-title">
+          🏆 World Cup Titles
+        </div>
+
+        <div class="trophy-years">
+          ${trophies.join(' • ')}
+        </div>
+      </div>
+    `
+    : ''
+}
 
             <div class="profile-stats">
               <div class="stat-box">

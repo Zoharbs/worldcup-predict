@@ -789,3 +789,60 @@ tr:nth-child(even) {
   font-weight: 800;
   font-size: 18px;
 }
+
+.theme-argentina { background: radial-gradient(circle at top, rgba(120,200,255,.18), transparent 34%), linear-gradient(180deg,#13202a,#183646,#101417); }
+.theme-brazil { background: radial-gradient(circle at top, rgba(255,220,70,.16), transparent 34%), linear-gradient(180deg,#11221a,#145c3b,#101417); }
+.theme-france { background: radial-gradient(circle at top, rgba(80,100,255,.18), transparent 34%), linear-gradient(180deg,#12192f,#1f2f56,#101417); }
+.theme-spain { background: radial-gradient(circle at top, rgba(255,70,70,.18), transparent 34%), linear-gradient(180deg,#2a1616,#522020,#101417); }
+.theme-germany { background: radial-gradient(circle at top, rgba(255,210,90,.12), transparent 34%), linear-gradient(180deg,#171717,#2b2b2b,#101417); }
+.theme-england { background: radial-gradient(circle at top, rgba(255,255,255,.16), transparent 34%), linear-gradient(180deg,#20242a,#4b1f2b,#101417); }
+.theme-portugal { background: radial-gradient(circle at top, rgba(220,30,45,.16), transparent 34%), linear-gradient(180deg,#16251d,#3f171c,#101417); }
+.theme-netherlands { background: radial-gradient(circle at top, rgba(255,120,40,.18), transparent 34%), linear-gradient(180deg,#241912,#4a2412,#101417); }
+.theme-belgium { background: radial-gradient(circle at top, rgba(255,210,70,.15), transparent 34%), linear-gradient(180deg,#171717,#451b1b,#101417); }
+.theme-italy { background: radial-gradient(circle at top, rgba(60,180,100,.16), transparent 34%), linear-gradient(180deg,#13251b,#173b28,#101417); }
+.theme-croatia { background: radial-gradient(circle at top, rgba(255,70,70,.16), transparent 34%), linear-gradient(180deg,#151c2c,#3d1b24,#101417); }
+.theme-morocco { background: radial-gradient(circle at top, rgba(255,70,70,.14), transparent 34%), linear-gradient(180deg,#241414,#4a1f1f,#101417); }
+.theme-usa { background: radial-gradient(circle at top, rgba(80,120,255,.16), transparent 34%), linear-gradient(180deg,#141b2b,#461b24,#101417); }
+.theme-mexico { background: radial-gradient(circle at top, rgba(20,160,90,.16), transparent 34%), linear-gradient(180deg,#14241b,#24523a,#101417); }
+.theme-canada { background: radial-gradient(circle at top, rgba(255,60,60,.18), transparent 34%), linear-gradient(180deg,#241515,#4a2020,#101417); }
+.theme-uruguay { background: radial-gradient(circle at top, rgba(110,190,255,.18), transparent 34%), linear-gradient(180deg,#12222d,#19384a,#101417); }
+.theme-colombia { background: radial-gradient(circle at top, rgba(255,220,70,.18), transparent 34%), linear-gradient(180deg,#1f1b12,#213b5a,#101417); }
+.theme-japan { background: radial-gradient(circle at top, rgba(255,255,255,.16), transparent 34%), linear-gradient(180deg,#20242a,#4a1b22,#101417); }
+.theme-korea { background: radial-gradient(circle at top, rgba(90,120,255,.16), transparent 34%), linear-gradient(180deg,#191f2e,#4a1b22,#101417); }
+.theme-australia { background: radial-gradient(circle at top, rgba(255,220,70,.16), transparent 34%), linear-gradient(180deg,#10251d,#154933,#101417); }
+.theme-switzerland { background: radial-gradient(circle at top, rgba(255,60,60,.18), transparent 34%), linear-gradient(180deg,#241515,#572020,#101417); }
+.theme-denmark { background: radial-gradient(circle at top, rgba(255,60,60,.16), transparent 34%), linear-gradient(180deg,#241515,#4d1d1d,#101417); }
+.theme-poland { background: radial-gradient(circle at top, rgba(255,255,255,.16), transparent 34%), linear-gradient(180deg,#242424,#4d1d1d,#101417); }
+.theme-serbia { background: radial-gradient(circle at top, rgba(80,110,255,.16), transparent 34%), linear-gradient(180deg,#151b2b,#4a1b1b,#101417); }
+.theme-senegal { background: radial-gradient(circle at top, rgba(255,220,70,.16), transparent 34%), linear-gradient(180deg,#13251b,#3b3a18,#101417); }
+.theme-ghana { background: radial-gradient(circle at top, rgba(255,220,70,.16), transparent 34%), linear-gradient(180deg,#171717,#4a1f1f,#101417); }
+.theme-nigeria { background: radial-gradient(circle at top, rgba(40,180,100,.18), transparent 34%), linear-gradient(180deg,#11251a,#17452c,#101417); }
+.theme-cameroon { background: radial-gradient(circle at top, rgba(255,210,70,.16), transparent 34%), linear-gradient(180deg,#18251a,#4a1f1f,#101417); }
+.theme-tunisia { background: radial-gradient(circle at top, rgba(255,60,60,.18), transparent 34%), linear-gradient(180deg,#241515,#4a2020,#101417); }
+.theme-egypt { background: radial-gradient(circle at top, rgba(255,60,60,.16), transparent 34%), linear-gradient(180deg,#171717,#4a1f1f,#101417); }
+.theme-saudi { background: radial-gradient(circle at top, rgba(40,180,100,.18), transparent 34%), linear-gradient(180deg,#11251a,#16442c,#101417); }
+.theme-iran { background: radial-gradient(circle at top, rgba(40,180,100,.16), transparent 34%), linear-gradient(180deg,#241515,#17452c,#101417); }
+.theme-qatar { background: radial-gradient(circle at top, rgba(140,40,70,.18), transparent 34%), linear-gradient(180deg,#20131a,#4a1f31,#101417); }
+
+
+.trophy-cabinet {
+  margin-top: 22px;
+  padding: 18px;
+  border-radius: 20px;
+
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.trophy-title {
+  color: var(--gold-light);
+  font-size: 18px;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.trophy-years {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}

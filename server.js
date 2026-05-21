@@ -2357,7 +2357,24 @@ app.get('/nation/:name', async (req, res) => {
       `,
       [nationName]
     );
+    const topPredictorResult = await pool.query(
+      `
+      SELECT
+        u.id,
+        u.username,
+        COALESCE(SUM(b.points_won), 0) AS team_points
+      FROM bets b
+      JOIN users u ON u.id = b.user_id
+      JOIN games g ON g.id = b.game_id
+      WHERE g.home_team = $1 OR g.away_team = $1
+      GROUP BY u.id, u.username
+      ORDER BY team_points DESC, u.username ASC
+      LIMIT 1
+      `,
+      [nationName]
+    );
 
+    const topPredictor = topPredictorResult.rows[0];
     const games = gamesResult.rows;
 
     if (games.length === 0) {
@@ -2471,7 +2488,22 @@ app.get('/nation/:name', async (req, res) => {
               <div class="stat-box">
                 <div class="stat-label">Goals Against</div>
                 <div class="stat-value">${goalsAgainst}</div>
-              </div>
+             ${
+                topPredictor
+                  ? `
+                    <div class="form-card">
+                      <h3>Top ${nationName} Predictor</h3>
+                      <p>
+                        <a href="/profile/${topPredictor.id}">
+                          ${topPredictor.username}
+                        </a>
+                        — ${topPredictor.team_points} points
+                      </p>
+                    </div>
+                  `
+                  : ''
+              }
+                </div>
             </div>
           </div>
 

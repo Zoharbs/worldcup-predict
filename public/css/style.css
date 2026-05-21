@@ -879,3 +879,27 @@ tr:nth-child(even) {
   height: 34px;
   object-fit: contain;
 }
+
+@media (max-width: 768px) {
+
+  .team {
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .team-logo {
+    width: 24px;
+    height: 24px;
+  }
+
+  .vs {
+    font-size: 14px;
+  }
+
+  .teams-row,
+  .bet-teams,
+  .next-match-teams {
+    gap: 10px;
+  }
+}

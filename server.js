@@ -776,10 +776,19 @@ app.get('/forgot-password', (req, res) => {
             If you forgot your password, contact the site admin and include your username.
           </p>
 
-          <div style="margin-top:20px;">
-            <a class="auth-btn" href="https://wa.me/972547588597">
-              Contact on WhatsApp
-            </a>
+          <div style="margin-top:20px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+  <a
+    class="auth-btn"
+    href="https://wa.me/972547588597?text=Hi%2C%20I%20forgot%20my%20password.%20My%20username%20is%3A">
+    Contact via whatsapp
+  </a>
+
+  <a
+    class="auth-btn secondary"
+    href="https://wa.me/972547588597?text=%D7%94%D7%99%D7%99%2C%20%D7%A9%D7%9B%D7%97%D7%AA%D7%99%20%D7%90%D7%AA%20%D7%94%D7%A1%D7%99%D7%A1%D7%9E%D7%94.%20%D7%A9%D7%9D%20%D7%94%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9%20%D7%A9%D7%9C%D7%99%20%D7%94%D7%95%D7%90%3A">
+    יצירת קשר בווטסאפ
+  </a>
+</div>
           </div>
 
           <div style="margin-top:12px;">

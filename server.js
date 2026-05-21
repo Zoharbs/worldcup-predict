@@ -1364,7 +1364,8 @@ app.get('/games', (req, res) => {
           b.away_guess AS my_away_guess,
           b.points_won AS my_points,
           b.credits_used AS my_credits_used,
-          b.credits_used AS my_credits_used
+          CASE WHEN pm.game_id IS NULL THEN 0 ELSE 1 END AS is_pinned
+        
 
         FROM games g
         LEFT JOIN competitions c ON c.id = g.competition_id

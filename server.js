@@ -1533,19 +1533,26 @@ const params = isLoggedIn ? [userId, userId] : [];
             <p><b>Stage:</b> ${formatStage(game.stage)}</p>
             <p>${game.game_date} | ${game.game_time}</p>
 
-            <a href="/game/${game.id}" class="secondary-btn">
-              Game Page
-            </a>
+<div class="game-card-actions">
 
-            ${isLoggedIn ? `
-              <form method="POST" action="${Number(game.is_pinned) === 1 ? '/unpin-match' : '/pin-match'}">
-                <input type="hidden" name="game_id" value="${game.id}">
+  <a href="/game/${game.id}" class="mini-action-btn">
+    Match
+  </a>
 
-                <button type="submit" class="secondary-btn">
-                  ${Number(game.is_pinned) === 1 ? '★ Unpin Match' : '☆ Pin Match'}
-                </button>
-              </form>
-            ` : ''}
+  ${isLoggedIn ? `
+    <form
+      method="POST"
+      action="${Number(game.is_pinned) === 1 ? '/unpin-match' : '/pin-match'}"
+    >
+      <input type="hidden" name="game_id" value="${game.id}">
+
+      <button type="submit" class="mini-action-btn">
+        ${Number(game.is_pinned) === 1 ? '★' : '☆'}
+      </button>
+    </form>
+  ` : ''}
+
+</div>
 
             ${block}
           </div>

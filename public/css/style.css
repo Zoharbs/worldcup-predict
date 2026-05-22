@@ -1168,3 +1168,56 @@ button:active,
 .match-page-wrap {
   padding-bottom: 140px;
 }
+
+.game-card {
+  position: relative;
+}
+
+.game-card-actions {
+  position: absolute;
+
+  top: 18px;
+  right: 18px;
+
+  display: flex;
+  gap: 8px;
+
+  align-items: center;
+}
+
+.game-card-actions form {
+  margin: 0;
+}
+
+.mini-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: auto;
+
+  padding: 7px 12px;
+
+  border-radius: 999px;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  text-decoration: none;
+
+  background: rgba(255,255,255,0.08);
+
+  border: 1px solid rgba(255,255,255,0.12);
+
+  color: var(--gold-light);
+
+  backdrop-filter: blur(8px);
+
+  transition: 0.2s ease;
+}
+
+.mini-action-btn:hover {
+  transform: translateY(-1px);
+
+  background: rgba(255,255,255,0.14);
+}

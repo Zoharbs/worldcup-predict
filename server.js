@@ -1529,7 +1529,6 @@ const params = isLoggedIn ? [userId, userId] : [];
               </span>
             </h3>
 
-            <p><b>Competition:</b> ${game.competition_name || 'World Cup 2026'}</p>
             <p><b>Stage:</b> ${formatStage(game.stage)}</p>
             <p>${game.game_date} | ${game.game_time}</p>
 

@@ -1662,69 +1662,42 @@ const params = isLoggedIn ? [userId, userId] : [];
 }
   }
 </script>
-<div class="donate-tab" onclick="toggleDonateBox()">
+<div class="donate-tab" id="donateTab">
   ❤️ Donate
 </div>
 
 <div id="donateBox" class="donate-box">
-<button class="close-donate-btn" onclick="closeDonateBox(event)">
-  ✕
-</button>
+  <button class="close-donate-btn" onclick="closeDonateBox(event)">
+    ✕
+  </button>
 
   <div class="donate-title">
     Support WorldCup Predict
   </div>
 
   <div class="donate-text">
-    Servers and APIs cost money :)
+    Enjoying the project? You can support it here ❤️
   </div>
 
   <div class="donate-buttons">
-
-    <a href="https://paypal.me/ZoharBenShlomo/3" target="_blank">
-      $1
-    </a>
-
-    <a href="https://paypal.me/ZoharBenShlomo/9" target="_blank">
-      $3
-    </a>
-
-    <a href="https://paypal.me/ZoharBenShlomo/15" target="_blank">
-      $5
-    </a>
-
+    <a href="https://paypal.me/ZoharBenShlomo/3" target="_blank">₪3</a>
+    <a href="https://paypal.me/ZoharBenShlomo/9" target="_blank">₪9</a>
+    <a href="https://paypal.me/ZoharBenShlomo/15" target="_blank">₪15</a>
   </div>
-
 </div>
 
 <script>
-  function toggleDonateBox() {
-    const box = document.getElementById('donateBox');
-
-    if (!box) return;
-
-    box.classList.toggle('show-donate-box');
-  }
-
-function closeDonateBox(e) {
-  e.stopPropagation();
-
-  document
-    .getElementById('donateBox')
-    .classList
-    .remove('show-donate-box');
-}
-    </script>
-    <script>
   const donateTab = document.getElementById('donateTab');
   const donateBox = document.getElementById('donateBox');
 
   let isDraggingDonate = false;
+  let didDragDonate = false;
   let startY = 0;
   let startTop = 0;
 
   donateTab.addEventListener('pointerdown', (e) => {
     isDraggingDonate = true;
+    didDragDonate = false;
     startY = e.clientY;
     startTop = donateTab.offsetTop;
     donateTab.setPointerCapture(e.pointerId);
@@ -1733,7 +1706,13 @@ function closeDonateBox(e) {
   donateTab.addEventListener('pointermove', (e) => {
     if (!isDraggingDonate) return;
 
-    const newTop = startTop + (e.clientY - startY);
+    const diff = e.clientY - startY;
+
+    if (Math.abs(diff) > 4) {
+      didDragDonate = true;
+    }
+
+    const newTop = startTop + diff;
     const maxTop = window.innerHeight - donateTab.offsetHeight - 20;
 
     donateTab.style.top = Math.max(20, Math.min(newTop, maxTop)) + 'px';
@@ -1742,10 +1721,10 @@ function closeDonateBox(e) {
   donateTab.addEventListener('pointerup', (e) => {
     isDraggingDonate = false;
     donateTab.releasePointerCapture(e.pointerId);
-  });
 
-  donateTab.addEventListener('click', () => {
-    donateBox.classList.toggle('show-donate-box');
+    if (!didDragDonate) {
+      donateBox.classList.toggle('show-donate-box');
+    }
   });
 
   function closeDonateBox(e) {

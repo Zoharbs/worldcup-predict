@@ -1510,3 +1510,22 @@ button:active,
   touch-action: none;
   user-select: none;
 }
+
+@media (max-width: 768px) {
+
+  .top-nav,
+  .filters-nav {
+    justify-content: center !important;
+
+    width: 100%;
+
+    overflow-x: auto;
+
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+}.top-nav a,
+.filters-nav a {
+  flex-shrink: 0;
+}

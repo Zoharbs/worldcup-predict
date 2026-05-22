@@ -1533,8 +1533,8 @@ const params = isLoggedIn ? [userId, userId] : [];
             <p><b>Stage:</b> ${formatStage(game.stage)}</p>
             <p>${game.game_date} | ${game.game_time}</p>
 
-            <a href="/match/${game.id}" class="secondary-btn">
-              Match Page
+            <a href="/game/${game.id}" class="secondary-btn">
+              Game Page
             </a>
 
             ${isLoggedIn ? `

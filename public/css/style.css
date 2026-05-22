@@ -1262,3 +1262,64 @@ button:active,
   top: 12px;
   right: 12px;
 }
+
+@media (max-width: 768px) {
+
+  #searchEasterEgg {
+    top: 32%;
+    font-size: 72px;
+  }
+
+  @keyframes flyAcrossScreen {
+
+    0% {
+      transform:
+        translateX(0)
+        translateY(0)
+        scale(0.12)
+        rotate(-20deg);
+
+      opacity: 0;
+    }
+
+    15% {
+      transform:
+        translateX(-10vw)
+        translateY(-10px)
+        scale(0.7);
+
+      opacity: 1;
+    }
+
+    45% {
+      transform:
+        translateX(-45vw)
+        translateY(-20px)
+        scale(2.2)
+        rotate(12deg);
+
+      opacity: 1;
+    }
+
+    75% {
+      transform:
+        translateX(-80vw)
+        translateY(10px)
+        scale(1)
+        rotate(-8deg);
+
+      opacity: 1;
+    }
+
+    100% {
+      transform:
+        translateX(-120vw)
+        translateY(0)
+        scale(0.06)
+        rotate(0deg);
+
+      opacity: 0;
+    }
+  }
+
+}

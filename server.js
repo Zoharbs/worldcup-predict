@@ -1571,6 +1571,10 @@ ${isLoggedIn ? `
     placeholder="Search team or stage..."
     oninput="filterGames()"
   >
+  <div id="searchEasterEgg" class="search-easter-egg">
+  <span></span>
+  <span></span>
+</div>
 </div>
             ${gamesHtml || '<p>No games to display</p>'}
             <script>
@@ -1578,15 +1582,80 @@ ${isLoggedIn ? `
               if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
             </script>
           </div>
-          <script>
+
+
+  <script>
+  const easterEggs = [
+    { keys: ['messi', 'מסי'], emoji: '🐐' },
+    { keys: ['ronaldo', 'cr7', 'cristiano', 'רונאלדו'], emoji: '🐫' },
+    { keys: ['mbappe', 'אמבפה'], emoji: '🐢' },
+    { keys: ['neymar', 'ניימאר'], emoji: '🎭' },
+    { keys: ['haaland', 'האלנד'], emoji: '🤖' },
+    { keys: ['modric', 'מודריץ'], emoji: '🎻' },
+    { keys: ['salah', 'סלאח'], emoji: '⚡' },
+    { keys: ['zidane', 'זידאן'], emoji: '🧠' },
+    { keys: ['maradona', 'מראדונה'], emoji: '🪄' },
+    { keys: ['pele', 'פלה'], emoji: '👑' },
+    { keys: ['iniesta', 'אינייסטה'], emoji: '🎨' },
+    { keys: ['xavi', 'צאבי'], emoji: '🧩' },
+    { keys: ['ramos', 'ראמוס'], emoji: '🟥' },
+    { keys: ['suarez', 'סוארז'], emoji: '🦷' },
+    { keys: ['buffon', 'בופון'], emoji: '🧤' },
+    { keys: ['casillas', 'קסיאס'], emoji: '🧱' },
+    { keys: ['kane', 'קיין'], emoji: '🎯' },
+    { keys: ['yamal', 'ימאל'], emoji: '✨' },
+    { keys: ['kroos', 'קרוס'], emoji: '🎼' },
+    { keys: ['ibrahimovic', 'zlatan', 'איברהימוביץ'], emoji: '🦁' },
+    { keys: ['pirlo', 'פירלו'], emoji: '🍷' },
+    { keys: ['kaka', 'קאקה'], emoji: '✝️' },
+    { keys: ['ronaldinho', 'רונאלדיניו'], emoji: '😄' },
+    { keys: ['beckham', 'בקהאם'], emoji: '🎩' },
+    { keys: ['muller', 'מולר'], emoji: '🦊' },
+    { keys: ['lewandowski', 'לבנדובסקי'], emoji: '🎯' },
+    { keys: ['vardy', 'ורדי'], emoji: '🍻' },
+    { keys: ['griezmann', 'גריזמן'], emoji: '🎮' },
+    { keys: ['pogba', 'פוגבה'], emoji: '🕺' },
+    { keys: ['kante', 'קאנטה'], emoji: '🔋' },
+    { keys: ['hakimi', 'חכימי'], emoji: '🏎️' },
+    { keys: ['osimhen', 'אוסימהן'], emoji: '🦅' },
+    { keys: ['son', 'סון'], emoji: '😊' },
+    { keys: ['kim min jae', 'קים מין גה'], emoji: '🧱' }
+  ];
+
   function filterGames() {
-    const q = document.getElementById('gamesSearch').value.toLowerCase();
+    const input = document.getElementById('gamesSearch');
+    const egg = document.getElementById('searchEasterEgg');
+
+    if (!input) return;
+
+    const q = input.value.toLowerCase();
+
     const cards = document.querySelectorAll('.game-card');
 
     cards.forEach(card => {
-      const text = card.dataset.search.toLowerCase();
+      const text = (card.dataset.search || '').toLowerCase();
       card.style.display = text.includes(q) ? '' : 'none';
     });
+
+    let foundEgg = null;
+
+    for (const item of easterEggs) {
+      if (item.keys.some(k => q.includes(k))) {
+        foundEgg = item;
+        break;
+      }
+    }
+
+    if (foundEgg && egg) {
+      egg.classList.add('show-search-egg');
+
+      egg.querySelectorAll('span').forEach(span => {
+        span.textContent = foundEgg.emoji;
+      });
+
+    } else if (egg) {
+      egg.classList.remove('show-search-egg');
+    }
   }
 </script>
         </body>

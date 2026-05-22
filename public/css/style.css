@@ -950,27 +950,53 @@ button:active,
 }
 
 @keyframes flyAcrossScreen {
+
   0% {
-    transform: translateX(0) translateY(0) scale(0.2) rotate(-20deg);
+    transform:
+      translateX(0)
+      translateY(0)
+      scale(0.15)
+      rotate(-20deg);
+
     opacity: 0;
   }
 
   15% {
+    transform:
+      translateX(-10vw)
+      translateY(-40px)
+      scale(1);
+
     opacity: 1;
   }
 
   45% {
-    transform: translateX(-45vw) translateY(-120px) scale(1.5) rotate(12deg);
+    transform:
+      translateX(-45vw)
+      translateY(-120px)
+      scale(4)
+      rotate(12deg);
+
     opacity: 1;
   }
 
   75% {
-    transform: translateX(-80vw) translateY(40px) scale(0.9) rotate(-8deg);
+    transform:
+      translateX(-80vw)
+      translateY(40px)
+      scale(1.6)
+      rotate(-8deg);
+
     opacity: 1;
   }
 
   100% {
-    transform: translateX(-120vw) translateY(0) scale(0.15) rotate(0deg);
+    transform:
+      translateX(-120vw)
+      translateY(0)
+      scale(0.08)
+      rotate(0deg);
+
     opacity: 0;
   }
 }

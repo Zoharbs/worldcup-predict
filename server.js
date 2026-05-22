@@ -1584,6 +1584,43 @@ const params = isLoggedIn ? [userId, userId] : [];
   <div id="searchEasterEgg"></div>
 </div>
             ${gamesHtml || '<p>No games to display</p>'}
+
+<div class="support-bar">
+
+  <div class="support-title">
+    ❤️ Support WorldCup Predict
+  </div>
+
+  <div class="support-subtitle">
+    Servers and APIs cost money :)
+  </div>
+
+  <div class="support-buttons">
+
+    <a
+      href="https://paypal.me/ZoharBenShlomo/1"
+      target="_blank"
+    >
+      $1
+    </a>
+
+    <a
+      href="https://paypal.me/ZoharBenShlomo/3"
+      target="_blank"
+    >
+      $3
+    </a>
+
+    <a
+      href="https://paypal.me/ZoharBenShlomo/5"
+      target="_blank"
+    >
+      $5
+    </a>
+
+  </div>
+
+</div>
             <script>
               const el = document.getElementById('today-game');
               if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
@@ -1882,6 +1919,7 @@ app.get('/game/:id', (req, res) => {
     `);
   });
 });
+
 
 // =========================
 // BETS

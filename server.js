@@ -1584,43 +1584,6 @@ const params = isLoggedIn ? [userId, userId] : [];
   <div id="searchEasterEgg"></div>
 </div>
             ${gamesHtml || '<p>No games to display</p>'}
-
-<div class="support-bar">
-
-  <div class="support-title">
-    ❤️ Support WorldCup Predict
-  </div>
-
-  <div class="support-subtitle">
-    Servers and APIs cost money :)
-  </div>
-
-  <div class="support-buttons">
-
-    <a
-      href="https://paypal.me/ZoharBenShlomo/1"
-      target="_blank"
-    >
-      $1
-    </a>
-
-    <a
-      href="https://paypal.me/ZoharBenShlomo/3"
-      target="_blank"
-    >
-      $3
-    </a>
-
-    <a
-      href="https://paypal.me/ZoharBenShlomo/5"
-      target="_blank"
-    >
-      $5
-    </a>
-
-  </div>
-
-</div>
             <script>
               const el = document.getElementById('today-game');
               if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
@@ -1697,6 +1660,47 @@ const params = isLoggedIn ? [userId, userId] : [];
   void egg.offsetWidth;
   egg.classList.add('animate-search-egg');
 }
+  }
+</script>
+<div class="donate-tab" onclick="toggleDonateBox()">
+  ❤️ Donate
+</div>
+
+<div id="donateBox" class="donate-box">
+
+  <div class="donate-title">
+    Support WorldCup Predict
+  </div>
+
+  <div class="donate-text">
+    Servers and APIs cost money :)
+  </div>
+
+  <div class="donate-buttons">
+
+    <a href="https://paypal.me/ZoharBenShlomo/1" target="_blank">
+      $1
+    </a>
+
+    <a href="https://paypal.me/ZoharBenShlomo/3" target="_blank">
+      $3
+    </a>
+
+    <a href="https://paypal.me/ZoharBenShlomo/5" target="_blank">
+      $5
+    </a>
+
+  </div>
+
+</div>
+
+<script>
+  function toggleDonateBox() {
+    const box = document.getElementById('donateBox');
+
+    if (!box) return;
+
+    box.classList.toggle('show-donate-box');
   }
 </script>
         </body>

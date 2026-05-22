@@ -937,11 +937,16 @@ button:active,
 
 #searchEasterEgg {
   position: fixed;
-  top: 22%;
+
+  top: 50%;
   right: -120px;
+
   z-index: 999999;
+
   font-size: 110px;
+
   pointer-events: none;
+
   opacity: 0;
 }
 
@@ -964,7 +969,7 @@ button:active,
   15% {
     transform:
       translateX(-10vw)
-      translateY(-40px)
+      translateY(-20px)
       scale(1);
 
     opacity: 1;
@@ -973,7 +978,7 @@ button:active,
   45% {
     transform:
       translateX(-45vw)
-      translateY(-120px)
+      translateY(-40px)
       scale(4)
       rotate(12deg);
 
@@ -983,7 +988,7 @@ button:active,
   75% {
     transform:
       translateX(-80vw)
-      translateY(40px)
+      translateY(20px)
       scale(1.6)
       rotate(-8deg);
 

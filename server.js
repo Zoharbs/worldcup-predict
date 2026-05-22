@@ -999,6 +999,7 @@ app.get('/', (req, res) => {
         <!DOCTYPE html>
         <html lang="en">
         <head> <link rel="manifest" href="/manifest.json">
+        <link rel="apple-touch-icon" href="/favicon-v3.PNG">
 <meta name="theme-color" content="#e5b947">
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">

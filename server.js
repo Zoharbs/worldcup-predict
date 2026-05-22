@@ -1667,6 +1667,9 @@ const params = isLoggedIn ? [userId, userId] : [];
 </div>
 
 <div id="donateBox" class="donate-box">
+<button class="close-donate-btn" onclick="closeDonateBox(event)">
+  ✕
+</button>
 
   <div class="donate-title">
     Support WorldCup Predict
@@ -1678,15 +1681,15 @@ const params = isLoggedIn ? [userId, userId] : [];
 
   <div class="donate-buttons">
 
-    <a href="https://paypal.me/ZoharBenShlomo/1" target="_blank">
+    <a href="https://paypal.me/ZoharBenShlomo/3" target="_blank">
       $1
     </a>
 
-    <a href="https://paypal.me/ZoharBenShlomo/3" target="_blank">
+    <a href="https://paypal.me/ZoharBenShlomo/9" target="_blank">
       $3
     </a>
 
-    <a href="https://paypal.me/ZoharBenShlomo/5" target="_blank">
+    <a href="https://paypal.me/ZoharBenShlomo/15" target="_blank">
       $5
     </a>
 
@@ -1702,7 +1705,16 @@ const params = isLoggedIn ? [userId, userId] : [];
 
     box.classList.toggle('show-donate-box');
   }
-</script>
+
+function closeDonateBox(e) {
+  e.stopPropagation();
+
+  document
+    .getElementById('donateBox')
+    .classList
+    .remove('show-donate-box');
+}
+    </script>
         </body>
         </html>
       `);

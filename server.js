@@ -1510,11 +1510,12 @@ const params = isLoggedIn ? [userId, userId] : [];
           }
         }
         gamesHtml += `
-          <div
-            class="game-card"
-            ${gameAnchor}
-            data-search="${game.home_team} ${game.away_team} ${formatStage(game.stage)} ${game.game_date}"
-          >
+                <div
+                  class="game-card"
+                  id="game-${game.id}"
+                  ${gameAnchor}
+                  data-search="${game.home_team} ${game.away_team} ${formatStage(game.stage)} ${game.game_date}"
+                >
             <h3 class="teams-row">
               <span class="team">
                 ${game.home_logo ? `<img src="${game.home_logo}" alt="${game.home_team}" class="team-logo">` : ''}
@@ -1968,7 +1969,7 @@ if (creditsUsed > maxCreditsForStage) {
     );
 
     await client.query('COMMIT');
-    res.redirect('/games');
+    res.redirect('/games#game-' + gameId);
   } catch (err) {
     await client.query('ROLLBACK');
     console.error(err);

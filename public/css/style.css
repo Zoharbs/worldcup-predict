@@ -1054,3 +1054,13 @@ button:active,
 
   font-size: 18px;
 }
+.password-rules {
+  margin-top: 10px;
+  text-align: left;
+  font-size: 14px;
+  color: var(--muted);
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

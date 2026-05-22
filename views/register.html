@@ -25,7 +25,8 @@
   <label for="password">Password</label>
 
   <div class="password-input-wrap">
-    <input id="password" type="password" name="password" required>
+    <input id="password" type="password" name="password" required
+    oninput="checkPasswordStrength()">
 
     <button
       type="button"
@@ -35,6 +36,13 @@
       👁️
     </button>
   </div>
+</div>
+
+<div id="passwordRules" class="password-rules">
+  <div id="ruleLength">❌ At least 8 characters</div>
+  <div id="ruleNumber">❌ Contains a number</div>
+  <div id="ruleUpper">❌ Contains an uppercase letter</div>
+  <div id="ruleLower">❌ Contains a lowercase letter</div>
 </div>
  <br>
 
@@ -60,6 +68,28 @@
       input.type = 'password';
       btn.textContent = '👁️';
     }
+  }
+</script>
+<script>
+  function checkPasswordStrength() {
+    const value = document.getElementById('password').value;
+
+    const hasLength = value.length >= 8;
+    const hasNumber = /\d/.test(value);
+    const hasUpper = /[A-Z]/.test(value);
+    const hasLower = /[a-z]/.test(value);
+
+    document.getElementById('ruleLength').textContent =
+      (hasLength ? '✅' : '❌') + ' At least 8 characters';
+
+    document.getElementById('ruleNumber').textContent =
+      (hasNumber ? '✅' : '❌') + ' Contains a number';
+
+    document.getElementById('ruleUpper').textContent =
+      (hasUpper ? '✅' : '❌') + ' Contains an uppercase letter';
+
+    document.getElementById('ruleLower').textContent =
+      (hasLower ? '✅' : '❌') + ' Contains a lowercase letter';
   }
 </script>
 </body>

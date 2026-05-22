@@ -935,40 +935,42 @@ button:active,
   font-size: 15px;
 }
 
-.search-easter-egg {
-  display: none;
-
-  justify-content: space-between;
-  align-items: center;
-
-  max-width: 520px;
-  margin: 14px auto 0;
-
+#searchEasterEgg {
+  position: fixed;
+  top: 22%;
+  right: -120px;
+  z-index: 999999;
+  font-size: 110px;
   pointer-events: none;
+  opacity: 0;
 }
 
-.search-easter-egg span {
-  font-size: 42px;
-
-  animation: easterEggPulse 1s ease-in-out infinite;
+.animate-search-egg {
+  animation: flyAcrossScreen 2.2s ease-in-out;
 }
 
-.search-easter-egg span:last-child {
-  animation-delay: 0.35s;
-}
-
-.show-search-egg {
-  display: flex;
-}
-
-@keyframes easterEggPulse {
-  0%, 100% {
-    transform: scale(0.88) rotate(-4deg);
-    opacity: 0.7;
+@keyframes flyAcrossScreen {
+  0% {
+    transform: translateX(0) translateY(0) scale(0.2) rotate(-20deg);
+    opacity: 0;
   }
 
-  50% {
-    transform: scale(1.35) rotate(4deg);
+  15% {
     opacity: 1;
+  }
+
+  45% {
+    transform: translateX(-45vw) translateY(-120px) scale(1.5) rotate(12deg);
+    opacity: 1;
+  }
+
+  75% {
+    transform: translateX(-80vw) translateY(40px) scale(0.9) rotate(-8deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(-120vw) translateY(0) scale(0.15) rotate(0deg);
+    opacity: 0;
   }
 }

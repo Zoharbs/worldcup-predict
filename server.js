@@ -1571,10 +1571,7 @@ ${isLoggedIn ? `
     placeholder="Search team or stage..."
     oninput="filterGames()"
   >
-  <div id="searchEasterEgg" class="search-easter-egg">
-  <span></span>
-  <span></span>
-</div>
+  <div id="searchEasterEgg"></div>
 </div>
             ${gamesHtml || '<p>No games to display</p>'}
             <script>
@@ -1647,15 +1644,12 @@ ${isLoggedIn ? `
     }
 
     if (foundEgg && egg) {
-      egg.classList.add('show-search-egg');
+  egg.textContent = foundEgg.emoji;
 
-      egg.querySelectorAll('span').forEach(span => {
-        span.textContent = foundEgg.emoji;
-      });
-
-    } else if (egg) {
-      egg.classList.remove('show-search-egg');
-    }
+  egg.classList.remove('animate-search-egg');
+  void egg.offsetWidth;
+  egg.classList.add('animate-search-egg');
+}
   }
 </script>
         </body>

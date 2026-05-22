@@ -1026,3 +1026,31 @@ button:active,
 .auth-submit {
   margin: 0 auto;
 }
+
+.password-input-wrap {
+  position: relative;
+}
+
+.password-input-wrap input {
+  width: 100%;
+  padding-right: 52px;
+}
+
+.toggle-password-btn {
+  position: absolute;
+
+  top: 50%;
+  right: 10px;
+
+  transform: translateY(-50%);
+
+  min-height: auto;
+  width: 38px;
+  height: 38px;
+
+  padding: 0;
+
+  border-radius: 12px;
+
+  font-size: 18px;
+}

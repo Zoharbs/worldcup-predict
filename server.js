@@ -1511,8 +1511,8 @@ const params = isLoggedIn ? [userId, userId] : [];
         }
 
         gamesHtml += `
-  <div
-    class="game-card"
+  <a href="/match/${game.id}" class="game-card-link">
+<div class="game-card"
     ${gameAnchor}
     data-search="${game.home_team} ${game.away_team} ${formatStage(game.stage)} ${game.game_date}"
   >
@@ -1542,6 +1542,8 @@ ${isLoggedIn ? `
       ${Number(game.is_pinned) === 1 ? '★ Unpin Match' : '☆ Pin Match'}
     </button>
   </form>
+  </div>
+</a>
 ` : ''}
 
 
@@ -1657,6 +1659,189 @@ ${isLoggedIn ? `
         </html>
       `);
     });
+  });
+});
+
+app.get('/game/:id', (req, res) => {
+  const gameId = Number(req.params.id);
+
+  if (!Number.isInteger(gameId)) {
+    return res.send('Invalid match');
+  }
+
+  const userId = req.session.userId || null;
+
+  const sql = `
+    SELECT
+      g.*,
+      c.name AS competition_name,
+      b.home_guess AS my_home_guess,
+      b.away_guess AS my_away_guess,
+      b.credits_used AS my_credits_used,
+      b.points_won AS my_points
+    FROM games g
+    LEFT JOIN competitions c ON c.id = g.competition_id
+    LEFT JOIN bets b
+      ON b.game_id = g.id
+      AND b.user_id = ?
+    WHERE g.id = ?
+  `;
+
+  db.get(sql, [userId, gameId], (err, game) => {
+    if (err || !game) {
+      console.error(err);
+      return res.send('Match not found');
+    }
+
+    const alreadyBet =
+      game.my_home_guess !== null &&
+      game.my_home_guess !== undefined;
+
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="manifest" href="/manifest.json">
+        <link rel="apple-touch-icon" href="/favicon-v3.PNG">
+
+        <meta name="theme-color" content="#e5b947">
+
+        <link rel="stylesheet" href="/css/style.css">
+
+        <title>
+          ${game.home_team} vs ${game.away_team}
+        </title>
+      </head>
+
+      <body>
+
+        <div class="page-wrap">
+
+          <div class="top-nav">
+            <a href="/games">← Back to Games</a>
+            <a href="/">Home</a>
+          </div>
+
+          <div class="match-page-card">
+
+            <div class="match-stage">
+              ${formatStage(game.stage)}
+            </div>
+
+            <h1 class="match-page-title">
+
+              <span class="team">
+                ${game.home_logo ? `
+                  <img
+                    src="${game.home_logo}"
+                    class="team-logo"
+                  >
+                ` : ''}
+
+                <a href="/nation/${encodeURIComponent(game.home_team)}">
+                  ${game.home_team}
+                </a>
+              </span>
+
+              <span class="vs">vs</span>
+
+              <span class="team">
+                ${game.away_logo ? `
+                  <img
+                    src="${game.away_logo}"
+                    class="team-logo"
+                  >
+                ` : ''}
+
+                <a href="/nation/${encodeURIComponent(game.away_team)}">
+                  ${game.away_team}
+                </a>
+              </span>
+
+            </h1>
+
+            <div class="match-page-meta">
+              ${game.game_date} • ${game.game_time}
+            </div>
+
+            <div class="match-page-meta">
+              ${game.competition_name || 'World Cup 2026'}
+            </div>
+
+            ${
+              game.venue
+                ? `
+                  <div class="match-page-meta">
+                    🏟️ ${game.venue}
+                  </div>
+                `
+                : ''
+            }
+
+            ${
+              game.status === 'finished'
+                ? `
+                  <div class="match-final-score">
+                    ${game.home_score} : ${game.away_score}
+                  </div>
+                `
+                : ''
+            }
+
+            <div class="match-atmosphere">
+              Football history is waiting to be written.
+            </div>
+
+          </div>
+
+          ${
+            req.session.userId
+              ? `
+                <div class="match-page-card">
+
+                  <div class="match-section-title">
+                    Your Prediction
+                  </div>
+
+                  ${
+                    alreadyBet
+                      ? `
+                        <div class="my-prediction-score">
+                          ${game.my_home_guess}
+                          :
+                          ${game.my_away_guess}
+                        </div>
+
+                        <div class="match-page-meta">
+                          Credits used:
+                          ${game.my_credits_used ?? 0}
+                        </div>
+
+                        <div class="match-page-meta">
+                          Points earned:
+                          ${game.my_points ?? 0}
+                        </div>
+                      `
+                      : `
+                        <div class="match-page-meta">
+                          You haven't predicted this match yet.
+                        </div>
+                      `
+                  }
+
+                </div>
+              `
+              : ''
+          }
+
+        </div>
+
+      </body>
+      </html>
+    `);
   });
 });
 

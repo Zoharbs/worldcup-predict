@@ -1715,6 +1715,44 @@ function closeDonateBox(e) {
     .remove('show-donate-box');
 }
     </script>
+    <script>
+  const donateTab = document.getElementById('donateTab');
+  const donateBox = document.getElementById('donateBox');
+
+  let isDraggingDonate = false;
+  let startY = 0;
+  let startTop = 0;
+
+  donateTab.addEventListener('pointerdown', (e) => {
+    isDraggingDonate = true;
+    startY = e.clientY;
+    startTop = donateTab.offsetTop;
+    donateTab.setPointerCapture(e.pointerId);
+  });
+
+  donateTab.addEventListener('pointermove', (e) => {
+    if (!isDraggingDonate) return;
+
+    const newTop = startTop + (e.clientY - startY);
+    const maxTop = window.innerHeight - donateTab.offsetHeight - 20;
+
+    donateTab.style.top = Math.max(20, Math.min(newTop, maxTop)) + 'px';
+  });
+
+  donateTab.addEventListener('pointerup', (e) => {
+    isDraggingDonate = false;
+    donateTab.releasePointerCapture(e.pointerId);
+  });
+
+  donateTab.addEventListener('click', () => {
+    donateBox.classList.toggle('show-donate-box');
+  });
+
+  function closeDonateBox(e) {
+    e.stopPropagation();
+    donateBox.classList.remove('show-donate-box');
+  }
+</script>
         </body>
         </html>
       `);

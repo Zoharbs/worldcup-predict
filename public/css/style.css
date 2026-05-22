@@ -1505,3 +1505,8 @@ button:active,
 
   cursor: pointer;
 }
+
+.donate-tab {
+  touch-action: none;
+  user-select: none;
+}

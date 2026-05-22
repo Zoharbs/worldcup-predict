@@ -1085,17 +1085,13 @@ button:active,
 
 .match-page-title {
   display: flex;
-
   justify-content: center;
   align-items: center;
-
   gap: 18px;
-
   flex-wrap: wrap;
-
   margin: 24px 0;
-
-  font-size: clamp(34px, 5vw, 64px);
+  font-size: clamp(28px, 4vw, 48px);
+  line-height: 1.15;
 }
 
 .match-stage {
@@ -1163,4 +1159,12 @@ button:active,
   text-decoration: none;
   color: inherit;
   display: block;
+}
+
+.match-action-btn {
+  margin-top: 22px;
+}
+
+.match-page-wrap {
+  padding-bottom: 140px;
 }

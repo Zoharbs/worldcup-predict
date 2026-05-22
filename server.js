@@ -1693,9 +1693,68 @@ app.get('/game/:id', (req, res) => {
       return res.send('Match not found');
     }
 
-    const alreadyBet =
-      game.my_home_guess !== null &&
-      game.my_home_guess !== undefined;
+    const alreadyBet = game.my_home_guess !== null && game.my_home_guess !== undefined;
+    const openForBetting = game.status === 'future' && canGuess(game.game_date, game.game_time);
+
+    const statusHtml = game.status === 'finished'
+      ? `<div class="match-final-score">${game.home_score} : ${game.away_score}</div>`
+      : `
+        <div
+          class="next-match-countdown match-countdown"
+          data-date="${game.game_date}"
+          data-time="${game.game_time}">
+        </div>
+      `;
+
+    const predictionHtml = req.session.userId
+      ? `
+        <div class="match-page-card">
+          <div class="match-section-title">Your Prediction</div>
+
+          ${
+            alreadyBet
+              ? `
+                <div class="my-prediction-score">
+                  ${game.my_home_guess} : ${game.my_away_guess}
+                </div>
+
+                <div class="match-page-meta">
+                  Credits used: ${game.my_credits_used ?? 0}
+                </div>
+
+                <div class="match-page-meta">
+                  Points earned: ${game.my_points ?? 0}
+                </div>
+              `
+              : `
+                <div class="match-page-meta">
+                  You haven't predicted this match yet.
+                </div>
+              `
+          }
+
+          ${
+            openForBetting
+              ? `
+                <a href="/games#game-${game.id}" class="secondary-btn match-action-btn">
+                  ${alreadyBet ? 'Update Prediction' : 'Make Prediction'}
+                </a>
+              `
+              : `
+                <div class="status-pill">
+                  ${game.status === 'finished' ? 'Match finished' : 'Betting closed'}
+                </div>
+              `
+          }
+        </div>
+      `
+      : `
+        <div class="match-page-card">
+          <div class="match-section-title">Prediction</div>
+          <div class="match-page-meta">Login to predict this match.</div>
+          <a href="/login" class="secondary-btn match-action-btn">Login</a>
+        </div>
+      `;
 
     res.send(`
       <!DOCTYPE html>
@@ -1706,61 +1765,38 @@ app.get('/game/:id', (req, res) => {
 
         <link rel="manifest" href="/manifest.json">
         <link rel="apple-touch-icon" href="/favicon-v3.PNG">
-
         <meta name="theme-color" content="#e5b947">
 
         <link rel="stylesheet" href="/css/style.css">
 
-        <title>
-          ${game.home_team} vs ${game.away_team}
-        </title>
+        <title>${game.home_team} vs ${game.away_team}</title>
       </head>
 
       <body>
-
-        <div class="page-wrap">
+        <div class="page-wrap match-page-wrap">
 
           <div class="top-nav">
             <a href="/games">← Back to Games</a>
             <a href="/">Home</a>
           </div>
 
-          <div class="match-page-card">
-
+          <div class="match-page-card match-hero-card">
             <div class="match-stage">
               ${formatStage(game.stage)}
             </div>
 
             <h1 class="match-page-title">
-
               <span class="team">
-                ${game.home_logo ? `
-                  <img
-                    src="${game.home_logo}"
-                    class="team-logo"
-                  >
-                ` : ''}
-
-                <a href="/nation/${encodeURIComponent(game.home_team)}">
-                  ${game.home_team}
-                </a>
+                ${game.home_logo ? `<img src="${game.home_logo}" class="team-logo">` : ''}
+                <a href="/nation/${encodeURIComponent(game.home_team)}">${game.home_team}</a>
               </span>
 
               <span class="vs">vs</span>
 
               <span class="team">
-                ${game.away_logo ? `
-                  <img
-                    src="${game.away_logo}"
-                    class="team-logo"
-                  >
-                ` : ''}
-
-                <a href="/nation/${encodeURIComponent(game.away_team)}">
-                  ${game.away_team}
-                </a>
+                ${game.away_logo ? `<img src="${game.away_logo}" class="team-logo">` : ''}
+                <a href="/nation/${encodeURIComponent(game.away_team)}">${game.away_team}</a>
               </span>
-
             </h1>
 
             <div class="match-page-meta">
@@ -1771,74 +1807,69 @@ app.get('/game/:id', (req, res) => {
               ${game.competition_name || 'World Cup 2026'}
             </div>
 
-            ${
-              game.venue
-                ? `
-                  <div class="match-page-meta">
-                    🏟️ ${game.venue}
-                  </div>
-                `
-                : ''
-            }
+            ${game.venue ? `<div class="match-page-meta">🏟️ ${game.venue}</div>` : ''}
 
-            ${
-              game.status === 'finished'
-                ? `
-                  <div class="match-final-score">
-                    ${game.home_score} : ${game.away_score}
-                  </div>
-                `
-                : ''
-            }
+            ${statusHtml}
 
             <div class="match-atmosphere">
               Football history is waiting to be written.
             </div>
-
           </div>
 
-          ${
-            req.session.userId
-              ? `
-                <div class="match-page-card">
+          ${predictionHtml}
 
-                  <div class="match-section-title">
-                    Your Prediction
-                  </div>
+          <div class="match-page-card">
+            <div class="match-section-title">Match Details</div>
 
-                  ${
-                    alreadyBet
-                      ? `
-                        <div class="my-prediction-score">
-                          ${game.my_home_guess}
-                          :
-                          ${game.my_away_guess}
-                        </div>
+            <div class="profile-stats">
+              <div class="stat-box">
+                <div class="stat-label">Status</div>
+                <div class="stat-value">${game.status}</div>
+              </div>
 
-                        <div class="match-page-meta">
-                          Credits used:
-                          ${game.my_credits_used ?? 0}
-                        </div>
+              <div class="stat-box">
+                <div class="stat-label">Stage</div>
+                <div class="stat-value">${formatStage(game.stage)}</div>
+              </div>
 
-                        <div class="match-page-meta">
-                          Points earned:
-                          ${game.my_points ?? 0}
-                        </div>
-                      `
-                      : `
-                        <div class="match-page-meta">
-                          You haven't predicted this match yet.
-                        </div>
-                      `
-                  }
-
-                </div>
-              `
-              : ''
-          }
+              <div class="stat-box">
+                <div class="stat-label">Competition</div>
+                <div class="stat-value">${game.competition_name || 'World Cup 2026'}</div>
+              </div>
+            </div>
+          </div>
 
         </div>
 
+        <script>
+          function updateMatchCountdown() {
+            const el = document.querySelector('.match-countdown');
+            if (!el) return;
+
+            const target = new Date(el.dataset.date + 'T' + el.dataset.time + ':00');
+            const diff = target - new Date();
+
+            if (diff <= 0) {
+              el.textContent = 'Betting closed / Match started';
+              return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((diff / (1000 * 60)) % 60);
+            const seconds = Math.floor((diff / 1000) % 60);
+
+            el.textContent =
+              'Starts in ' +
+              days + 'd ' +
+              String(hours).padStart(2, '0') + 'h ' +
+              String(minutes).padStart(2, '0') + 'm ' +
+              String(seconds).padStart(2, '0') + 's';
+          }
+
+          updateMatchCountdown();
+          setInterval(updateMatchCountdown, 1000);
+        </script>
       </body>
       </html>
     `);

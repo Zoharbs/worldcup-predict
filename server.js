@@ -1509,47 +1509,47 @@ const params = isLoggedIn ? [userId, userId] : [];
             `;
           }
         }
-
         gamesHtml += `
-  <a href="/match/${game.id}" class="game-card-link">
-<div class="game-card"
-    ${gameAnchor}
-    data-search="${game.home_team} ${game.away_team} ${formatStage(game.stage)} ${game.game_date}"
-  >
-    <h3 class="teams-row">
-      <span class="team">
-        ${game.home_logo ? `<img src="${game.home_logo}" alt="${game.home_team}" class="team-logo">` : ''}
-        <a href="/nation/${encodeURIComponent(game.home_team)}">${game.home_team}</a>
-      </span>
+          <div
+            class="game-card"
+            ${gameAnchor}
+            data-search="${game.home_team} ${game.away_team} ${formatStage(game.stage)} ${game.game_date}"
+          >
+            <h3 class="teams-row">
+              <span class="team">
+                ${game.home_logo ? `<img src="${game.home_logo}" alt="${game.home_team}" class="team-logo">` : ''}
+                <a href="/nation/${encodeURIComponent(game.home_team)}">${game.home_team}</a>
+              </span>
 
-      <span class="vs">vs</span>
+              <span class="vs">vs</span>
 
-      <span class="team">
-        ${game.away_logo ? `<img src="${game.away_logo}" alt="${game.away_team}" class="team-logo">` : ''}
-        <a href="/nation/${encodeURIComponent(game.away_team)}">${game.away_team}</a>
-      </span>
-    </h3>
+              <span class="team">
+                ${game.away_logo ? `<img src="${game.away_logo}" alt="${game.away_team}" class="team-logo">` : ''}
+                <a href="/nation/${encodeURIComponent(game.away_team)}">${game.away_team}</a>
+              </span>
+            </h3>
 
-    <p><b>Competition:</b> ${game.competition_name || 'World Cup 2026'}</p>
-    <p><b>Stage:</b> ${formatStage(game.stage)}</p>
-    <p>${game.game_date} | ${game.game_time}</p>
+            <p><b>Competition:</b> ${game.competition_name || 'World Cup 2026'}</p>
+            <p><b>Stage:</b> ${formatStage(game.stage)}</p>
+            <p>${game.game_date} | ${game.game_time}</p>
 
-${isLoggedIn ? `
-  <form method="POST" action="${Number(game.is_pinned) === 1 ? '/unpin-match' : '/pin-match'}">
-    <input type="hidden" name="game_id" value="${game.id}">
+            <a href="/match/${game.id}" class="secondary-btn">
+              Match Page
+            </a>
 
-    <button type="submit" class="secondary-btn">
-      ${Number(game.is_pinned) === 1 ? '★ Unpin Match' : '☆ Pin Match'}
-    </button>
-  </form>
-  </div>
-</a>
-` : ''}
+            ${isLoggedIn ? `
+              <form method="POST" action="${Number(game.is_pinned) === 1 ? '/unpin-match' : '/pin-match'}">
+                <input type="hidden" name="game_id" value="${game.id}">
 
+                <button type="submit" class="secondary-btn">
+                  ${Number(game.is_pinned) === 1 ? '★ Unpin Match' : '☆ Pin Match'}
+                </button>
+              </form>
+            ` : ''}
 
-    ${block}
-  </div>
-`;
+            ${block}
+          </div>
+        `;
       });
 
       res.send(`

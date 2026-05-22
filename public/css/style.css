@@ -1005,3 +1005,24 @@ button:active,
     opacity: 0;
   }
 }
+
+.auth-page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px 120px;
+}
+
+.auth-card {
+  width: min(460px, 94%);
+  margin: 0 auto;
+}
+
+.auth-form input {
+  width: 100%;
+}
+
+.auth-submit {
+  margin: 0 auto;
+}

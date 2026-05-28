@@ -2254,140 +2254,139 @@ app.post('/league/delete', isAdmin, async (req, res) => {
 });
 
 app.get('/leagues', requireLogin, (req, res) => {
-  db.all(
-    `SELECT l.id, l.name, l.join_code
-     FROM leagues l
-     JOIN league_members m ON m.league_id = l.id
-     WHERE m.user_id = ?
-     ORDER BY l.name`,
-    [req.session.userId],
-    (err, rows) => {
-      if (err) return res.send('Error loading leagues');
+  const isAdminUser = Number(req.session.isAdmin) === 1;
 
-      const active = req.session.activeLeagueId;
+  const sql = isAdminUser
+    ? `
+      SELECT l.id, l.name, l.join_code, l.owner_user_id
+      FROM leagues l
+      ORDER BY l.name
+    `
+    : `
+      SELECT l.id, l.name, l.join_code, l.owner_user_id
+      FROM leagues l
+      JOIN league_members m ON m.league_id = l.id
+      WHERE m.user_id = ?
+      ORDER BY l.name
+    `;
 
-const list = rows.map(r => `
-  <div class="league-card">
-    <div class="league-title">${r.name}</div>
-    <div class="league-meta"><b>Join Code:</b> ${r.join_code}</div>
+  const params = isAdminUser ? [] : [req.session.userId];
 
-    ${active === r.id ? `<div class="league-badge">Active League</div>` : ''}
+  db.all(sql, params, (err, rows) => {
+    if (err) return res.send('Error loading leagues');
 
-    <div class="league-actions">
-      ${active === r.id ? '' : `
-        <form method="POST" action="/league/switch" style="display:inline;">
-          <input type="hidden" name="league_id" value="${r.id}">
-          <button type="submit">Set as Active</button>
-        </form>
-      `}
+    const active = req.session.activeLeagueId;
 
-      <a class="secondary-btn" href="/leaderboard/${r.id}">
-        Leaderboard
-      </a>
+    const list = rows.map(r => `
+      <div class="league-card">
+        <div class="league-title">${r.name}</div>
+        <div class="league-meta"><b>Join Code:</b> ${r.join_code}</div>
 
-      <a class="secondary-btn" href="/league/${r.id}/chat">
-        Chat
-      </a>
+        ${active === r.id ? `<div class="league-badge">Active League</div>` : ''}
 
-      <button
-        type="button"
-        onclick="copyLeagueLink('${r.join_code}')"
-        class="secondary-btn">
-        Copy Invite Link
-      </button>
+        <div class="league-actions">
+          ${active === r.id ? '' : `
+            <form method="POST" action="/league/switch" style="display:inline;">
+              <input type="hidden" name="league_id" value="${r.id}">
+              <button type="submit">Set as Active</button>
+            </form>
+          `}
 
-      ${Number(r.owner_user_id) === Number(req.session.userId) ? `
-        <form
-          method="POST"
-          action="/league/delete"
-          style="display:inline;"
-          onsubmit="return confirm('Delete this league?');">
-          <input type="hidden" name="league_id" value="${r.id}">
-          <button type="submit" class="auth-btn danger">Delete League</button>
-        </form>
-      ` : ''}
-    </div>
-  </div>
-`).join('');
+          <a class="secondary-btn" href="/leaderboard/${r.id}">Leaderboard</a>
+          <a class="secondary-btn" href="/league/${r.id}/chat">Chat</a>
 
-      res.send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head> <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#e5b947">
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <link rel="icon" href="/favicon.ico?v=31">
-          <title>private Leagues</title>
-          <link rel="stylesheet" href="/css/style.css">
-        </head>
+          <button type="button" onclick="copyLeagueLink('${r.join_code}')" class="secondary-btn">
+            Copy Invite Link
+          </button>
 
-        <body>
-          <div class="page-wrap">
-            <div class="section-title">My private Leagues</div>
-            <div class="section-subtitle">
-              Create a league, join one, and compete with privates
-            </div>
+          ${isAdminUser ? `
+            <form method="POST" action="/league/delete" style="display:inline;" onsubmit="return confirm('Delete this league?');">
+              <input type="hidden" name="league_id" value="${r.id}">
+              <button type="submit" class="auth-btn danger">Delete League</button>
+            </form>
+          ` : ''}
+        </div>
+      </div>
+    `).join('');
 
-            <div class="top-nav">
-              <a href="/">Home</a>
-              <a href="/games">Games</a>
-              <a href="/leaderboard">Global Leaderboard</a>
-              <a href="/profile/${req.session.userId}">My Profile</a>
-            </div>
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <link rel="manifest" href="/manifest.json">
+        <meta name="theme-color" content="#e5b947">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" href="/favicon.ico?v=31">
+        <title>Private Leagues</title>
+        <link rel="stylesheet" href="/css/style.css">
+      </head>
 
-            <div class="status-pill">
-              Current Mode:
-              ${active ? `private League Active (ID: ${active})` : 'Global'}
-              ${active ? ` | <a href="/league/clear">Back to Global</a>` : ''}
-            </div>
-
-            <div class="leagues-grid">
-              ${list || `
-                <div class="league-card">
-                  <div class="league-title">No leagues yet</div>
-                  <div class="league-meta">Create one or join one below.</div>
-                </div>
-              `}
-            </div>
-
-            <div class="form-card">
-              <h3>Create League</h3>
-              <p>Start a private World Cup competition and invite privates with a join code.</p>
-              <form method="POST" action="/league/create">
-                <input name="name" placeholder="League name" required>
-                <button type="submit">Create League</button>
-              </form>
-            </div>
-
-            <div class="form-card">
-              <h3>Join League</h3>
-              <p>Enter a join code to join an existing private league.</p>
-              <form method="POST" action="/league/join">
-                <input name="join_code" placeholder="Join code" required>
-                <button type="submit">Join League</button>
-              </form>
-            </div>
+      <body>
+        <div class="page-wrap">
+          <div class="section-title">My Private Leagues</div>
+          <div class="section-subtitle">
+            Create a league, join one, and compete with friends
           </div>
 
-          <script>
-            function copyLeagueLink(code) {
-              const url = window.location.origin + '/join/' + code;
+          <div class="top-nav">
+            <a href="/">Home</a>
+            <a href="/games">Games</a>
+            <a href="/leaderboard">Global Leaderboard</a>
+            <a href="/profile/${req.session.userId}">My Profile</a>
+          </div>
 
-              navigator.clipboard.writeText(url)
-                .then(function () {
-                  alert('Invite link copied!');
-                })
-                .catch(function () {
-                  prompt('Copy this invite link:', url);
-                });
-            }
-          </script>
-        </body>
-        </html>
-      `);
-    }
-  );
+          <div class="status-pill">
+            Current Mode:
+            ${active ? `Private League Active (ID: ${active})` : 'Global'}
+            ${active ? ` | <a href="/league/clear">Back to Global</a>` : ''}
+          </div>
+
+          <div class="leagues-grid">
+            ${list || `
+              <div class="league-card">
+                <div class="league-title">No leagues yet</div>
+                <div class="league-meta">Create one or join one below.</div>
+              </div>
+            `}
+          </div>
+
+          <div class="form-card">
+            <h3>Create League</h3>
+            <p>Start a private World Cup competition and invite friends with a join code.</p>
+            <form method="POST" action="/league/create">
+              <input name="name" placeholder="League name" required>
+              <button type="submit">Create League</button>
+            </form>
+          </div>
+
+          <div class="form-card">
+            <h3>Join League</h3>
+            <p>Enter a join code to join an existing private league.</p>
+            <form method="POST" action="/league/join">
+              <input name="join_code" placeholder="Join code" required>
+              <button type="submit">Join League</button>
+            </form>
+          </div>
+        </div>
+
+        <script>
+          function copyLeagueLink(code) {
+            const url = window.location.origin + '/join/' + code;
+
+            navigator.clipboard.writeText(url)
+              .then(function () {
+                alert('Invite link copied!');
+              })
+              .catch(function () {
+                prompt('Copy this invite link:', url);
+              });
+          }
+        </script>
+      </body>
+      </html>
+    `);
+  });
 });
 
 app.post('/league/switch', requireLogin, (req, res) => {

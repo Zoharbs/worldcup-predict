@@ -2266,45 +2266,49 @@ app.get('/leagues', requireLogin, (req, res) => {
 
       const active = req.session.activeLeagueId;
 
-      const list = rows.map(r => `
-        <div class="league-card">
-          <div class="league-title">${r.name}</div>
-          <div class="league-meta"><b>Join Code:</b> ${r.join_code}</div>
+const list = rows.map(r => `
+  <div class="league-card">
+    <div class="league-title">${r.name}</div>
+    <div class="league-meta"><b>Join Code:</b> ${r.join_code}</div>
 
-          ${active === r.id ? `<div class="league-badge">Active League</div>` : ''}
+    ${active === r.id ? `<div class="league-badge">Active League</div>` : ''}
 
-          <div class="league-actions">
-            ${active === r.id ? '' : `
-              <form method="POST" action="/league/switch" style="display:inline;">
-                <input type="hidden" name="league_id" value="${r.id}">
-                <button type="submit">Set as Active</button>
-              </form>
-            `}
+    <div class="league-actions">
+      ${active === r.id ? '' : `
+        <form method="POST" action="/league/switch" style="display:inline;">
+          <input type="hidden" name="league_id" value="${r.id}">
+          <button type="submit">Set as Active</button>
+        </form>
+      `}
 
-            <a class="secondary-btn" href="/leaderboard/${r.id}">
-              League Leaderboard
-            </a>
+      <a class="secondary-btn" href="/leaderboard/${r.id}">
+        Leaderboard
+      </a>
 
-            <button
-              type="button"
-              onclick="copyLeagueLink('${r.join_code}')"
-              class="secondary-btn">
-              Copy Invite Link
-            </button>
+      <a class="secondary-btn" href="/league/${r.id}/chat">
+        Chat
+      </a>
 
-            ${req.session.isAdmin === 1 ? `
-              <form
-                method="POST"
-                action="/league/delete"
-                style="display:inline;"
-                onsubmit="return confirm('Delete this league?');">
-                <input type="hidden" name="league_id" value="${r.id}">
-                <button type="submit" class="auth-btn danger">Delete League</button>
-              </form>
-            ` : ''}
-          </div>
-        </div>
-      `).join('');
+      <button
+        type="button"
+        onclick="copyLeagueLink('${r.join_code}')"
+        class="secondary-btn">
+        Copy Invite Link
+      </button>
+
+      ${Number(r.owner_user_id) === Number(req.session.userId) ? `
+        <form
+          method="POST"
+          action="/league/delete"
+          style="display:inline;"
+          onsubmit="return confirm('Delete this league?');">
+          <input type="hidden" name="league_id" value="${r.id}">
+          <button type="submit" class="auth-btn danger">Delete League</button>
+        </form>
+      ` : ''}
+    </div>
+  </div>
+`).join('');
 
       res.send(`
         <!DOCTYPE html>
@@ -2386,6 +2390,16 @@ app.get('/leagues', requireLogin, (req, res) => {
   );
 });
 
+app.post('/league/switch', requireLogin, (req, res) => {
+  const leagueId = Number(req.body.league_id);
+
+  if (!Number.isInteger(leagueId) || leagueId <= 0) {
+    return res.redirect('/leagues');
+  }
+
+  req.session.activeLeagueId = leagueId;
+  res.redirect('/games');
+});
 
 app.get('/join/:code', (req, res) => {
   const code = String(req.params.code || '').trim().toUpperCase();

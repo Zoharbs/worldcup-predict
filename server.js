@@ -86,6 +86,15 @@ async function setupDatabase() {
 await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP`);
 await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMP`);
   
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS league_messages (
+    id SERIAL PRIMARY KEY,
+    league_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
 
 await pool.query(`
     CREATE TABLE IF NOT EXISTS competitions (
@@ -2477,9 +2486,158 @@ app.get('/leaderboard/:leagueId', requireLogin, (req, res) => {
   );
 });
 
+app.get('/league/clear', (req, res) => {
+  req.session.activeLeagueId = null;
+  res.redirect('/games');
+});
 
+app.get('/league/:id/chat', requireLogin, async (req, res) => {
+  const leagueId = Number(req.params.id);
 
+  if (!Number.isInteger(leagueId) || leagueId <= 0) {
+    return res.send('Invalid league');
+  }
 
+  const memberCheck = await pool.query(
+    `SELECT 1 FROM league_members WHERE league_id = $1 AND user_id = $2`,
+    [leagueId, req.session.userId]
+  );
+
+  if (memberCheck.rows.length === 0) {
+    return res.send('You are not a member of this league');
+  }
+
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="/css/style.css">
+      <title>League Chat</title>
+    </head>
+    <body>
+      <div class="page-wrap">
+        <div class="top-nav">
+          <a href="/leagues">Back to Leagues</a>
+          <a href="/leaderboard/${leagueId}">Leaderboard</a>
+          <a href="/">Home</a>
+        </div>
+
+        <div class="form-card">
+          <h1>League Chat</h1>
+
+          <div id="chatMessages" class="chat-box"></div>
+
+          <form id="chatForm" class="chat-form">
+            <input id="chatInput" maxlength="300" placeholder="Write a message..." required>
+            <button type="submit">Send</button>
+          </form>
+        </div>
+      </div>
+
+      <script>
+        const leagueId = ${leagueId};
+
+        async function loadMessages() {
+          const res = await fetch('/league/' + leagueId + '/chat/messages');
+          const messages = await res.json();
+
+          const box = document.getElementById('chatMessages');
+
+          box.innerHTML = messages.map(m => \`
+            <div class="chat-message">
+              <div class="chat-meta">
+                <b>\${m.username}</b>
+                <span>\${new Date(m.created_at).toLocaleString()}</span>
+              </div>
+              <div class="chat-text">\${m.message}</div>
+            </div>
+          \`).join('');
+
+          box.scrollTop = box.scrollHeight;
+        }
+
+        document.getElementById('chatForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          const input = document.getElementById('chatInput');
+          const message = input.value.trim();
+
+          if (!message) return;
+
+          await fetch('/league/' + leagueId + '/chat/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message })
+          });
+
+          input.value = '';
+          loadMessages();
+        });
+
+        loadMessages();
+        setInterval(loadMessages, 2000);
+      </script>
+    </body>
+    </html>
+  `);
+});
+
+app.get('/league/:id/chat/messages', requireLogin, async (req, res) => {
+  const leagueId = Number(req.params.id);
+
+  const memberCheck = await pool.query(
+    `SELECT 1 FROM league_members WHERE league_id = $1 AND user_id = $2`,
+    [leagueId, req.session.userId]
+  );
+
+  if (memberCheck.rows.length === 0) {
+    return res.status(403).json([]);
+  }
+
+  const result = await pool.query(
+    `
+    SELECT lm.message, lm.created_at, u.username
+    FROM league_messages lm
+    JOIN users u ON u.id = lm.user_id
+    WHERE lm.league_id = $1
+    ORDER BY lm.created_at ASC
+    LIMIT 100
+    `,
+    [leagueId]
+  );
+
+  res.json(result.rows);
+});
+
+app.post('/league/:id/chat/send', requireLogin, async (req, res) => {
+  const leagueId = Number(req.params.id);
+  const message = String(req.body.message || '').trim();
+
+  if (!message || message.length > 300) {
+    return res.status(400).json({ ok: false });
+  }
+
+  const memberCheck = await pool.query(
+    `SELECT 1 FROM league_members WHERE league_id = $1 AND user_id = $2`,
+    [leagueId, req.session.userId]
+  );
+
+  if (memberCheck.rows.length === 0) {
+    return res.status(403).json({ ok: false });
+  }
+
+  await pool.query(
+    `
+    INSERT INTO league_messages (league_id, user_id, message)
+    VALUES ($1, $2, $3)
+    `,
+    [leagueId, req.session.userId, message]
+  );
+
+  res.json({ ok: true });
+});
 
 // =========================
 // ADMIN
@@ -3075,5 +3233,8 @@ async function startServer() {
     process.exit(1);
   }
 }
+
+
+
 
 startServer();

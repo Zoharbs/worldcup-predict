@@ -2807,31 +2807,37 @@ app.post('/league/:id/chat/send', requireLogin, async (req, res) => {
 
 app.get('/chats', requireLogin, (req, res) => {
   const sql = `
-    SELECT
-      l.id,
-      l.name,
-      COUNT(CASE
-        WHEN lm.id > COALESCE(cr.last_seen_message_id, 0)
-        THEN 1
-      END) AS unread_count,
-      MAX(lm.created_at) AS last_message_at
-    FROM leagues l
-    JOIN league_members m ON m.league_id = l.id
-    LEFT JOIN league_messages lm ON lm.league_id = l.id
-    LEFT JOIN chat_reads cr
-      ON cr.league_id = l.id
-      AND cr.user_id = ?
-    WHERE m.user_id = ?
-    GROUP BY l.id, l.name, cr.last_seen_message_id
-    ORDER BY last_message_at DESC NULLS LAST, l.name ASC
+  SELECT
+    l.id,
+    l.name,
+
+    COUNT(CASE
+      WHEN lm.id > COALESCE(cr.last_seen_message_id, 0)
+      THEN 1
+    END) AS unread_count,
+
+    MAX(lm.created_at) AS last_message_at,
+
     (
-  SELECT lm2.message
-  FROM league_messages lm2
-  WHERE lm2.league_id = l.id
-  ORDER BY lm2.id DESC
-  LIMIT 1
-) AS last_message
-  `;
+      SELECT lm2.message
+      FROM league_messages lm2
+      WHERE lm2.league_id = l.id
+      ORDER BY lm2.id DESC
+      LIMIT 1
+    ) AS last_message
+
+  FROM leagues l
+  JOIN league_members m ON m.league_id = l.id
+  LEFT JOIN league_messages lm ON lm.league_id = l.id
+  LEFT JOIN chat_reads cr
+    ON cr.league_id = l.id
+    AND cr.user_id = ?
+
+  WHERE m.user_id = ?
+
+  GROUP BY l.id, l.name, cr.last_seen_message_id
+  ORDER BY last_message_at DESC, l.name ASC
+`;
 
   db.all(sql, [req.session.userId, req.session.userId], (err, rows) => {
     if (err) {

@@ -648,7 +648,12 @@ app.get('/change-password', requireLogin, (req, res) => {
               <a href="/">Back Home</a>
             </div>
           </div>
-        </body>
+        <div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
         </html>
       `);
     });
@@ -682,7 +687,12 @@ app.get('/change-password', requireLogin, (req, res) => {
           <a href="/">Back Home</a>
         </div>
       </div>
-    </body>
+    <div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
     </html>
   `);
 });
@@ -806,7 +816,12 @@ app.get('/forgot-password', (req, res) => {
 
         </div>
       </div>
-    </body>
+    <div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
     </html>
   `);
 });
@@ -853,7 +868,12 @@ app.get('/help', (req, res) => {
         <div class="help-card"><h3 class="help-card-title">Tie-Breaker</h3><p class="help-text">If two players finish with the same number of points, the higher rank goes to the player who used fewer total credits.</p></div>
         <div class="help-card"><h3 class="help-card-title">Private Leagues</h3><p class="help-text">You can create or join private leagues and compete against specific groups.</p></div>
       </div>
-    </body>
+    <div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
     </html>
   `);
 });
@@ -919,7 +939,12 @@ app.get('/install-app', (req, res) => {
     window.location.href = '/';
   }
 </script>
-    </body>
+    <div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
     </html>
   `);
 });
@@ -1108,7 +1133,12 @@ app.get('/', (req, res) => {
     navigator.serviceWorker.register('/service-worker.js');
   }
 </script>
-        </body>
+        <div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
         </html>
       `);
     }
@@ -1225,7 +1255,12 @@ app.get('/leaderboard', (req, res) => {
             </table>
           </div>
         </div>
-      </body>
+      <div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
       </html>
     `);
   });
@@ -1394,7 +1429,12 @@ app.get('/profile/:id', (req, res) => {
                   </div>
                 </div>
               </div>
-            </body>
+            <div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
             </html>
           `);
         }
@@ -1741,7 +1781,12 @@ const params = isLoggedIn ? [userId, userId] : [];
     donateBox.classList.remove('show-donate-box');
   }
 </script>
-        </body>
+        <div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
         </html>
       `);
     });
@@ -1956,7 +2001,12 @@ app.get('/game/:id', (req, res) => {
           updateMatchCountdown();
           setInterval(updateMatchCountdown, 1000);
         </script>
-      </body>
+      <div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
       </html>
     `);
   });
@@ -2141,7 +2191,12 @@ app.get('/my-bets', requireLogin, (req, res) => {
           </div>
           <div class="bets-page">${cards || `<div class="empty-state">You have not placed any bets yet.</div>`}</div>
         </div>
-      </body>
+      <div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
       </html>
     `);
   });
@@ -2254,17 +2309,28 @@ app.post('/league/delete', isAdmin, async (req, res) => {
 });
 
 app.get('/leagues', requireLogin, (req, res) => {
-  db.all(
-    `SELECT l.id, l.name, l.join_code
-     FROM leagues l
-     JOIN league_members m ON m.league_id = l.id
-     WHERE m.user_id = ?
-     ORDER BY l.name`,
-    [req.session.userId],
-    (err, rows) => {
-      if (err) return res.send('Error loading leagues');
+  const isAdminUser = Number(req.session.isAdmin) === 1;
 
-      const active = req.session.activeLeagueId;
+  const sql = isAdminUser
+    ? `
+      SELECT l.id, l.name, l.join_code, l.owner_user_id
+      FROM leagues l
+      ORDER BY l.name
+    `
+    : `
+      SELECT l.id, l.name, l.join_code, l.owner_user_id
+      FROM leagues l
+      JOIN league_members m ON m.league_id = l.id
+      WHERE m.user_id = ?
+      ORDER BY l.name
+    `;
+
+  const params = isAdminUser ? [] : [req.session.userId];
+
+  db.all(sql, params, (err, rows) => {
+    if (err) return res.send('Error loading leagues');
+
+    const active = req.session.activeLeagueId;
 
 const list = rows.map(r => `
   <div class="league-card">
@@ -2296,8 +2362,7 @@ const list = rows.map(r => `
         Copy Invite Link
       </button>
 
-      ${Number(r.owner_user_id) === Number(req.session.userId) ? `
-        <form
+${isAdminUser ? `        <form
           method="POST"
           action="/league/delete"
           style="display:inline;"
@@ -2383,7 +2448,12 @@ const list = rows.map(r => `
                 });
             }
           </script>
-        </body>
+        <div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
         </html>
       `);
     }
@@ -2492,7 +2562,12 @@ app.get('/leaderboard/:leagueId', requireLogin, (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">     
   <title>League Leaderboard</title><link rel="stylesheet" href="/css/style.css"></head>
-          <body><div class="page-wrap"><div class="section-title">League Leaderboard</div><div class="section-subtitle">${league.name}</div><div class="top-nav"><a href="/leagues">Private Leagues</a><a href="/games">Games</a><a href="/leaderboard">Global Leaderboard</a></div><div class="table-card"><table><tr><th>Rank</th><th>User</th><th>Points</th><th>Credits Left</th></tr>${tableRows || '<tr><td colspan="4">No data</td></tr>'}</table></div></div></body>
+          <body><div class="page-wrap"><div class="section-title">League Leaderboard</div><div class="section-subtitle">${league.name}</div><div class="top-nav"><a href="/leagues">Private Leagues</a><a href="/games">Games</a><a href="/leaderboard">Global Leaderboard</a></div><div class="table-card"><table><tr><th>Rank</th><th>User</th><th>Points</th><th>Credits Left</th></tr>${tableRows || '<tr><td colspan="4">No data</td></tr>'}</table></div></div><div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
           </html>
         `);
       });
@@ -2593,7 +2668,12 @@ app.get('/league/:id/chat', requireLogin, async (req, res) => {
         loadMessages();
         setInterval(loadMessages, 2000);
       </script>
-    </body>
+    <div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
     </html>
   `);
 });
@@ -2653,6 +2733,57 @@ app.post('/league/:id/chat/send', requireLogin, async (req, res) => {
   res.json({ ok: true });
 });
 
+app.get('/chat/latest-id', requireLogin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT COALESCE(MAX(lm.id), 0) AS latest_id
+      FROM league_messages lm
+      JOIN league_members mem ON mem.league_id = lm.league_id
+      WHERE mem.user_id = $1
+      `,
+      [req.session.userId]
+    );
+
+    res.json({ latestId: Number(result.rows[0].latest_id || 0) });
+  } catch (err) {
+    console.error(err);
+    res.json({ latestId: 0 });
+  }
+});
+
+app.get('/chat/notifications', requireLogin, async (req, res) => {
+  const sinceId = Number(req.query.sinceId || 0);
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT
+        lm.id,
+        lm.league_id,
+        lm.message,
+        u.username,
+        l.name AS league_name
+      FROM league_messages lm
+      JOIN users u ON u.id = lm.user_id
+      JOIN leagues l ON l.id = lm.league_id
+      JOIN league_members mem ON mem.league_id = lm.league_id
+      WHERE mem.user_id = $1
+        AND lm.user_id <> $1
+        AND lm.id > $2
+      ORDER BY lm.id ASC
+      LIMIT 5
+      `,
+      [req.session.userId, sinceId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.json([]);
+  }
+});
+
 // =========================
 // ADMIN
 // =========================
@@ -2692,7 +2823,12 @@ app.get('/admin/users', isAdmin, (req, res) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">
   <title>Admin Users</title><link rel="stylesheet" href="/css/style.css"></head>
-      <body><div class="page-wrap"><div class="section-title">Admin Users</div><div class="section-subtitle">Manage users, reset points, and remove accounts</div><div class="top-nav"><a href="/admin">Admin</a><a href="/">Home</a><a href="/leaderboard">Leaderboard</a></div><div class="table-card"><table><tr><th>ID</th><th>Username</th><th>Admin</th><th>Total Points</th><th>Credits Left</th><th>Actions</th></tr>${tableRows || `<tr><td colspan="6">No users found</td></tr>`}</table></div></div></body>
+      <body><div class="page-wrap"><div class="section-title">Admin Users</div><div class="section-subtitle">Manage users, reset points, and remove accounts</div><div class="top-nav"><a href="/admin">Admin</a><a href="/">Home</a><a href="/leaderboard">Leaderboard</a></div><div class="table-card"><table><tr><th>ID</th><th>Username</th><th>Admin</th><th>Total Points</th><th>Credits Left</th><th>Actions</th></tr>${tableRows || `<tr><td colspan="6">No users found</td></tr>`}</table></div></div><div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
       </html>
     `);
   });
@@ -2746,7 +2882,12 @@ app.get('/admin/add-game', isAdmin, (req, res) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">     
 <title>Add Game</title></head>
-      <body><h1>Add New Game</h1><form action="/admin/add-game" method="POST"><label>Competition:<select name="competition_id" required>${options}</select></label><br><br><label>Home Team:<input type="text" name="home_team" required></label><br><br><label>Away Team:<input type="text" name="away_team" required></label><br><br><label>Date:<input type="date" name="game_date" required></label><br><br><label>Time:<input type="time" name="game_time" required></label><br><br><button type="submit">Add Game</button></form><br><a href="/admin">Back to Admin</a></body>
+      <body><h1>Add New Game</h1><form action="/admin/add-game" method="POST"><label>Competition:<select name="competition_id" required>${options}</select></label><br><br><label>Home Team:<input type="text" name="home_team" required></label><br><br><label>Away Team:<input type="text" name="away_team" required></label><br><br><label>Date:<input type="date" name="game_date" required></label><br><br><label>Time:<input type="time" name="game_time" required></label><br><br><button type="submit">Add Game</button></form><br><a href="/admin">Back to Admin</a><div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
       </html>
     `);
   });
@@ -2785,7 +2926,12 @@ app.get('/admin/results', isAdmin, (req, res) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">
-        <title>Set Results</title></head><body><h1>Set Results (Admin)</h1>${html || '<p>No games</p>'}<a href="/admin">Back to Admin</a></body></html>`);
+        <title>Set Results</title></head><body><h1>Set Results (Admin)</h1>${html || '<p>No games</p>'}<a href="/admin">Back to Admin</a><div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body></html>`);
     }
   );
 });
@@ -2904,7 +3050,12 @@ app.get('/admin/stats', isAdmin, async (req, res) => {
         <br>
         <a href="/admin">Back to Admin</a>
       </div>
-    </body>
+    <div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
     </html>
   `);
 });
@@ -2936,7 +3087,12 @@ app.get('/update-user', requireLogin, (req, res) => {
       <head> <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#e5b947"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Update User</title></head>
 <link rel="icon" href="/favicon.ico?v=31">
-   <body><h1>Update User</h1><form action="/update-user" method="POST"><label>Username:<input type="text" name="username" value="${row.username}"></label><br><br><label>Password:<input type="password" name="password" placeholder="Use Change Password page"></label><br><br><button type="submit">Update</button></form></body>
+   <body><h1>Update User</h1><form action="/update-user" method="POST"><label>Username:<input type="text" name="username" value="${row.username}"></label><br><br><label>Password:<input type="password" name="password" placeholder="Use Change Password page"></label><br><br><button type="submit">Update</button></form><div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
       </html>
     `);
   });
@@ -3206,7 +3362,12 @@ const nationThemeClass = nationThemes[nationName] || '';
 
           ${gamesHtml}
         </div>
-      </body>
+      <div id="chatToast" class="chat-toast">
+  <div class="chat-toast-title" id="chatToastTitle"></div>
+  <div class="chat-toast-text" id="chatToastText"></div>
+</div>
+
+<script src="/js/chatNotifications.js"></script></body>
       </html>
     `);
   } catch (err) {

@@ -2824,6 +2824,13 @@ app.get('/chats', requireLogin, (req, res) => {
     WHERE m.user_id = ?
     GROUP BY l.id, l.name, cr.last_seen_message_id
     ORDER BY last_message_at DESC NULLS LAST, l.name ASC
+    (
+  SELECT lm2.message
+  FROM league_messages lm2
+  WHERE lm2.league_id = l.id
+  ORDER BY lm2.id DESC
+  LIMIT 1
+) AS last_message
   `;
 
   db.all(sql, [req.session.userId, req.session.userId], (err, rows) => {
@@ -2832,20 +2839,27 @@ app.get('/chats', requireLogin, (req, res) => {
       return res.send('Error loading chats');
     }
 
-    const chatsHtml = rows.map(r => `
-      <a href="/league/${r.id}/chat" class="chat-list-item">
-        <div>
-          <div class="chat-list-title">${r.name}</div>
-          <div class="chat-list-meta">
-            ${r.last_message_at ? `Last message: ${r.last_message_at}` : 'No messages yet'}
-          </div>
-        </div>
+  const chatsHtml = rows.map(r => `
+  <a href="/league/${r.id}/chat" class="chat-list-card" dir="auto">
+    <div class="chat-list-main">
+      <div class="chat-list-title">${r.name}</div>
 
-        ${Number(r.unread_count) > 0 ? `
-          <div class="chat-list-count">${r.unread_count}</div>
-        ` : ''}
-      </a>
-    `).join('');
+      <div class="chat-list-preview" dir="auto">
+        ${r.last_message ? r.last_message : 'No messages yet'}
+      </div>
+
+      <div class="chat-list-meta" data-time="${r.last_message_at || ''}">
+        ${r.last_message_at ? '' : 'No messages yet'}
+      </div>
+    </div>
+
+    ${Number(r.unread_count) > 0 ? `
+      <div class="chat-list-count">${r.unread_count}</div>
+    ` : `
+      <div class="chat-list-open">Open</div>
+    `}
+  </a>
+`).join('');
 
     res.send(`
       <!DOCTYPE html>
@@ -2866,11 +2880,52 @@ app.get('/chats', requireLogin, (req, res) => {
           </div>
 
           <h1>Chats</h1>
+            <div class="section-subtitle">
+              Choose a league chat and continue the conversation
+            </div>
 
           <div class="form-card">
             ${chatsHtml || '<p>No chats yet</p>'}
           </div>
         </div>
+        <script>
+  function formatIsraelChatTime(value) {
+    if (!value) return '';
+
+    const date = new Date(value);
+    const now = new Date();
+
+    const israelDate = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Jerusalem' }));
+    const israelNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jerusalem' }));
+
+    const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+    const diffDays = Math.round(
+      (startOfDay(israelNow) - startOfDay(israelDate)) / 86400000
+    );
+
+    const time = israelDate.toLocaleTimeString('he-IL', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+
+    if (diffDays === 0) return 'היום ' + time;
+    if (diffDays === 1) return 'אתמול ' + time;
+    if (diffDays === -1) return 'מחר ' + time;
+
+    const day = israelDate.getDate();
+    const month = israelDate.getMonth() + 1;
+    const year = String(israelDate.getFullYear()).slice(2);
+
+    return day + '/' + month + '/' + year + ' ' + time;
+  }
+
+  document.querySelectorAll('[data-time]').forEach(el => {
+    const value = el.dataset.time;
+    if (value) el.textContent = formatIsraelChatTime(value);
+  });
+</script>
       </body>
       </html>
     `);

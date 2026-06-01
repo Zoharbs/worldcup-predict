@@ -2693,7 +2693,7 @@ await pool.query(
         </div>
       </div>
 
-      <script>
+      
        
       <script>
         const leagueId = ${leagueId};
@@ -2738,7 +2738,7 @@ await pool.query(
         loadMessages();
         setInterval(loadMessages, 2000);
       </script>
-      </script>
+      
     <div id="chatToast" class="chat-toast">
   <div class="chat-toast-title" id="chatToastTitle"></div>
   <div class="chat-toast-text" id="chatToastText"></div>

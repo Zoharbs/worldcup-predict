@@ -2694,6 +2694,8 @@ await pool.query(
       </div>
 
       <script>
+       
+      <script>
         const leagueId = ${leagueId};
 
         async function loadMessages() {
@@ -2735,6 +2737,7 @@ await pool.query(
 
         loadMessages();
         setInterval(loadMessages, 2000);
+      </script>
       </script>
     <div id="chatToast" class="chat-toast">
   <div class="chat-toast-title" id="chatToastTitle"></div>
@@ -2916,9 +2919,9 @@ app.get('/chats', requireLogin, (req, res) => {
       hour12: false
     });
 
-    if (diffDays === 0) return 'היום ' + time;
-    if (diffDays === 1) return 'אתמול ' + time;
-    if (diffDays === -1) return 'מחר ' + time;
+    if (diffDays === 0) return 'today ' + time;
+    if (diffDays === 1) return 'yesterday ' + time;
+    if (diffDays === -1) return 'tomorrow ' + time;
 
     const day = israelDate.getDate();
     const month = israelDate.getMonth() + 1;

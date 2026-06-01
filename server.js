@@ -2695,58 +2695,103 @@ await pool.query(
 
       
        
-      <script>
-        const leagueId = ${leagueId};
+  <script>
+  const leagueId = ${leagueId};
 
-        async function loadMessages() {
-  const res = await fetch('/league/' + leagueId + '/chat/messages');
-  const messages = await res.json();
+  function formatChatTime(value) {
+    if (!value) return '';
 
-  const box = document.getElementById('chatMessages');
+    const date = new Date(value);
+    const now = new Date();
 
-  const oldScrollTop = box.scrollTop;
-  const oldScrollHeight = box.scrollHeight;
-  const shouldStickToBottom = isNearBottom(box);
+    const israelDate = new Date(
+      date.toLocaleString('en-US', { timeZone: 'Asia/Jerusalem' })
+    );
 
-  box.innerHTML = messages.map(m => \`
-    <div class="chat-message" dir="auto">
-      <div class="chat-meta">
-        <b>\${m.username}</b>
-        <span>\${formatChatTime(m.created_at)}</span>
-      </div>
-      <div class="chat-text" dir="auto">\${m.message}</div>
-    </div>
-  \`).join('');
+    const israelNow = new Date(
+      now.toLocaleString('en-US', { timeZone: 'Asia/Jerusalem' })
+    );
 
-  if (shouldStickToBottom) {
-    box.scrollTop = box.scrollHeight;
-  } else {
-    box.scrollTop =
-      oldScrollTop + (box.scrollHeight - oldScrollHeight);
+    const startOfDay = d =>
+      new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+    const diffDays = Math.round(
+      (startOfDay(israelNow) - startOfDay(israelDate)) / 86400000
+    );
+
+    const time = israelDate.toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+
+    if (diffDays === 0) return 'Today ' + time;
+    if (diffDays === 1) return 'Yesterday ' + time;
+    if (diffDays === -1) return 'Tomorrow ' + time;
+
+    const day = israelDate.getDate();
+    const month = israelDate.getMonth() + 1;
+    const year = String(israelDate.getFullYear()).slice(2);
+
+    return day + '/' + month + '/' + year + ' ' + time;
   }
-}
 
-        document.getElementById('chatForm').addEventListener('submit', async (e) => {
-          e.preventDefault();
+  function isNearBottom(box) {
+    return box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+  }
 
-          const input = document.getElementById('chatInput');
-          const message = input.value.trim();
+  async function loadMessages() {
+    const res = await fetch('/league/' + leagueId + '/chat/messages');
+    const messages = await res.json();
 
-          if (!message) return;
+    const box = document.getElementById('chatMessages');
 
-          await fetch('/league/' + leagueId + '/chat/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message })
-          });
+    const oldScrollTop = box.scrollTop;
+    const oldScrollHeight = box.scrollHeight;
+    const shouldStickToBottom = isNearBottom(box);
 
-          input.value = '';
-          loadMessages();
-        });
+    box.innerHTML = messages.map(m => \`
+      <div class="chat-message" dir="auto">
+        <div class="chat-meta">
+          <b>\${m.username}</b>
+          <span>\${formatChatTime(m.created_at)}</span>
+        </div>
+        <div class="chat-text" dir="auto">\${m.message}</div>
+      </div>
+    \`).join('');
 
-        loadMessages();
-        setInterval(loadMessages, 2000);
-      </script>
+    if (shouldStickToBottom) {
+      box.scrollTop = box.scrollHeight;
+    } else {
+      box.scrollTop =
+        oldScrollTop + (box.scrollHeight - oldScrollHeight);
+    }
+  }
+
+  document.getElementById('chatForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+
+    if (!message) return;
+
+    await fetch('/league/' + leagueId + '/chat/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message })
+    });
+
+    input.value = '';
+    await loadMessages();
+
+    const box = document.getElementById('chatMessages');
+    box.scrollTop = box.scrollHeight;
+  });
+
+  loadMessages();
+  setInterval(loadMessages, 2000);
+</script>
       
     <div id="chatToast" class="chat-toast">
   <div class="chat-toast-title" id="chatToastTitle"></div>

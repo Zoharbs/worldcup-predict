@@ -2699,23 +2699,32 @@ await pool.query(
         const leagueId = ${leagueId};
 
         async function loadMessages() {
-          const res = await fetch('/league/' + leagueId + '/chat/messages');
-          const messages = await res.json();
+  const res = await fetch('/league/' + leagueId + '/chat/messages');
+  const messages = await res.json();
 
-          const box = document.getElementById('chatMessages');
+  const box = document.getElementById('chatMessages');
 
-          box.innerHTML = messages.map(m => \`
-            <div class="chat-message">
-              <div class="chat-meta">
-                <b>\${m.username}</b>
-                <span>\${new Date(m.created_at).toLocaleString()}</span>
-              </div>
-              <div class="chat-text">\${m.message}</div>
-            </div>
-          \`).join('');
+  const oldScrollTop = box.scrollTop;
+  const oldScrollHeight = box.scrollHeight;
+  const shouldStickToBottom = isNearBottom(box);
 
-          box.scrollTop = box.scrollHeight;
-        }
+  box.innerHTML = messages.map(m => \`
+    <div class="chat-message" dir="auto">
+      <div class="chat-meta">
+        <b>\${m.username}</b>
+        <span>\${formatChatTime(m.created_at)}</span>
+      </div>
+      <div class="chat-text" dir="auto">\${m.message}</div>
+    </div>
+  \`).join('');
+
+  if (shouldStickToBottom) {
+    box.scrollTop = box.scrollHeight;
+  } else {
+    box.scrollTop =
+      oldScrollTop + (box.scrollHeight - oldScrollHeight);
+  }
+}
 
         document.getElementById('chatForm').addEventListener('submit', async (e) => {
           e.preventDefault();

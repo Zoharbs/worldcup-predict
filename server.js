@@ -152,6 +152,15 @@ await pool.query(`
     )
   `);
 
+ await pool.query(`
+  CREATE TABLE IF NOT EXISTS chat_reads (
+    user_id INTEGER NOT NULL,
+    league_id INTEGER NOT NULL,
+    last_seen_message_id INTEGER DEFAULT 0,
+    PRIMARY KEY (user_id, league_id)
+  )
+`);
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS league_members (
       league_id INTEGER NOT NULL REFERENCES leagues(id) ON DELETE CASCADE,
@@ -2194,6 +2203,7 @@ app.get('/my-bets', requireLogin, (req, res) => {
             <a href="/games">Games</a>
             <a href="/leaderboard">Leaderboard</a>
             <a href="/profile/${req.session.userId}">My Profile</a>
+              <a href="/chats">Chats</a>
           </div>
           <div class="bets-page">${cards || `<div class="empty-state">You have not placed any bets yet.</div>`}</div>
         </div>
@@ -2319,19 +2329,47 @@ app.get('/leagues', requireLogin, (req, res) => {
 
   const sql = isAdminUser
     ? `
-      SELECT l.id, l.name, l.join_code, l.owner_user_id
-      FROM leagues l
-      ORDER BY l.name
+      SELECT
+  l.id,
+  l.name,
+  l.join_code,
+  l.owner_user_id,
+COUNT(CASE
+  WHEN lm.id > COALESCE(cr.last_seen_message_id, 0)
+  THEN 1
+END) AS unread_count
+FROM leagues l
+LEFT JOIN league_messages lm ON lm.league_id = l.id
+LEFT JOIN chat_reads cr
+  ON cr.league_id = l.id
+  AND cr.user_id = ?
+GROUP BY l.id, l.name, l.join_code, l.owner_user_id, cr.last_seen_message_id
+ORDER BY l.name
     `
     : `
-      SELECT l.id, l.name, l.join_code, l.owner_user_id
-      FROM leagues l
-      JOIN league_members m ON m.league_id = l.id
-      WHERE m.user_id = ?
-      ORDER BY l.name
+     SELECT
+  l.id,
+  l.name,
+  l.join_code,
+  l.owner_user_id,
+COUNT(CASE
+  WHEN lm.id > COALESCE(cr.last_seen_message_id, 0)
+  THEN 1
+END) AS unread_count
+FROM leagues l
+JOIN league_members m ON m.league_id = l.id
+LEFT JOIN league_messages lm ON lm.league_id = l.id
+LEFT JOIN chat_reads cr
+  ON cr.league_id = l.id
+  AND cr.user_id = ?
+WHERE m.user_id = ?
+GROUP BY l.id, l.name, l.join_code, l.owner_user_id, cr.last_seen_message_id
+ORDER BY l.name
     `;
 
-  const params = isAdminUser ? [] : [req.session.userId];
+const params = isAdminUser
+  ? [req.session.userId]
+  : [req.session.userId, req.session.userId];
 
   db.all(sql, params, (err, rows) => {
     if (err) return res.send('Error loading leagues');
@@ -2357,9 +2395,10 @@ const list = rows.map(r => `
         Leaderboard
       </a>
 
-      <a class="secondary-btn" href="/league/${r.id}/chat">
-        Chat
-      </a>
+<a class="secondary-btn chat-league-btn" href="/league/${r.id}/chat">
+  Chat
+  ${Number(r.unread_count) > 0 ? `<span class="chat-count">${r.unread_count}</span>` : ''}
+</a>
 
       <button
         type="button"
@@ -2404,6 +2443,7 @@ ${isAdminUser ? `        <form
               <a href="/">Home</a>
               <a href="/games">Games</a>
               <a href="/leaderboard">Global Leaderboard</a>
+                <a href="/chats">Chats</a>
               <a href="/profile/${req.session.userId}">My Profile</a>
             </div>
 
@@ -2568,7 +2608,7 @@ app.get('/leaderboard/:leagueId', requireLogin, (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">     
   <title>League Leaderboard</title><link rel="stylesheet" href="/css/style.css"></head>
-          <body><div class="page-wrap"><div class="section-title">League Leaderboard</div><div class="section-subtitle">${league.name}</div><div class="top-nav"><a href="/leagues">Private Leagues</a><a href="/games">Games</a><a href="/leaderboard">Global Leaderboard</a></div><div class="table-card"><table><tr><th>Rank</th><th>User</th><th>Points</th><th>Credits Left</th></tr>${tableRows || '<tr><td colspan="4">No data</td></tr>'}</table></div></div><div id="chatToast" class="chat-toast">
+          <body><div class="page-wrap"><div class="section-title">League Leaderboard</div><div class="section-subtitle">${league.name}</div><div class="top-nav"><a href="/leagues">Private Leagues</a><a href="/games">Games</a><a href="/leaderboard">Global Leaderboard</a>  <a href="/chats">Chats</a></div><div class="table-card"><table><tr><th>Rank</th><th>User</th><th>Points</th><th>Credits Left</th></tr>${tableRows || '<tr><td colspan="4">No data</td></tr>'}</table></div></div><div id="chatToast" class="chat-toast">
   <div class="chat-toast-title" id="chatToastTitle"></div>
   <div class="chat-toast-text" id="chatToastText"></div>
 </div>
@@ -2602,6 +2642,25 @@ app.get('/league/:id/chat', requireLogin, async (req, res) => {
     return res.send('You are not a member of this league');
   }
 
+  const latestResult = await pool.query(
+  `SELECT COALESCE(MAX(id), 0) AS latest_id
+   FROM league_messages
+   WHERE league_id = $1`,
+  [leagueId]
+);
+
+const latestId = Number(latestResult.rows[0].latest_id || 0);
+
+await pool.query(
+  `
+  INSERT INTO chat_reads (user_id, league_id, last_seen_message_id)
+  VALUES ($1, $2, $3)
+  ON CONFLICT (user_id, league_id) DO UPDATE SET
+    last_seen_message_id = EXCLUDED.last_seen_message_id
+  `,
+  [req.session.userId, leagueId, latestId]
+);
+
   res.send(`
     <!DOCTYPE html>
     <html lang="en">
@@ -2617,6 +2676,7 @@ app.get('/league/:id/chat', requireLogin, async (req, res) => {
           <a href="/leagues">Back to Leagues</a>
           <a href="/leaderboard/${leagueId}">Leaderboard</a>
           <a href="/">Home</a>
+            <a href="/chats">Chats</a>
         </div>
 
         <div class="form-card">
@@ -2738,6 +2798,83 @@ app.post('/league/:id/chat/send', requireLogin, async (req, res) => {
 
   res.json({ ok: true });
 });
+
+// =========================
+// CHATS
+// =========================
+
+app.get('/chats', requireLogin, (req, res) => {
+  const sql = `
+    SELECT
+      l.id,
+      l.name,
+      COUNT(CASE
+        WHEN lm.id > COALESCE(cr.last_seen_message_id, 0)
+        THEN 1
+      END) AS unread_count,
+      MAX(lm.created_at) AS last_message_at
+    FROM leagues l
+    JOIN league_members m ON m.league_id = l.id
+    LEFT JOIN league_messages lm ON lm.league_id = l.id
+    LEFT JOIN chat_reads cr
+      ON cr.league_id = l.id
+      AND cr.user_id = ?
+    WHERE m.user_id = ?
+    GROUP BY l.id, l.name, cr.last_seen_message_id
+    ORDER BY last_message_at DESC NULLS LAST, l.name ASC
+  `;
+
+  db.all(sql, [req.session.userId, req.session.userId], (err, rows) => {
+    if (err) {
+      console.error(err);
+      return res.send('Error loading chats');
+    }
+
+    const chatsHtml = rows.map(r => `
+      <a href="/league/${r.id}/chat" class="chat-list-item">
+        <div>
+          <div class="chat-list-title">${r.name}</div>
+          <div class="chat-list-meta">
+            ${r.last_message_at ? `Last message: ${r.last_message_at}` : 'No messages yet'}
+          </div>
+        </div>
+
+        ${Number(r.unread_count) > 0 ? `
+          <div class="chat-list-count">${r.unread_count}</div>
+        ` : ''}
+      </a>
+    `).join('');
+
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/css/style.css">
+        <title>Chats</title>
+      </head>
+      <body>
+        <div class="page-wrap">
+          <div class="top-nav">
+            <a href="/">Home</a>
+            <a href="/games">Games</a>
+            <a href="/leagues">Leagues</a>
+              <a href="/chats">Chats</a>
+          </div>
+
+          <h1>Chats</h1>
+
+          <div class="form-card">
+            ${chatsHtml || '<p>No chats yet</p>'}
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+  });
+});
+
 
 app.get('/chat/latest-id', requireLogin, async (req, res) => {
   try {
@@ -3297,6 +3434,7 @@ const nationThemeClass = nationThemes[nationName] || '';
             <a href="/">Home</a>
             <a href="/games">Games</a>
             <a href="/leaderboard">Leaderboard</a>
+              <a href="/chats">Chats</a>
           </div>
 
           <div class="profile-card">

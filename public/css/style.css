@@ -1621,3 +1621,91 @@ button:active,
   color: var(--text);
   font-size: 14px;
 }
+
+.chat-league-btn {
+  position: relative;
+}
+
+.chat-red-dot {
+  position: absolute;
+  top: 7px;
+  right: 10px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff3b30;
+  box-shadow: 0 0 8px #ff3b30;
+}
+
+.chat-league-btn {
+  position: relative;
+}
+
+.chat-count {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+
+  min-width: 20px;
+  height: 20px;
+
+  padding: 0 6px;
+
+  border-radius: 999px;
+
+  background: #ff3b30;
+  color: white;
+
+  font-size: 12px;
+  font-weight: 900;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: 0 0 10px rgba(255,59,48,0.8);
+}
+
+.chat-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 16px;
+  margin: 12px 0;
+
+  border-radius: 18px;
+
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+
+  color: var(--text);
+  text-decoration: none;
+}
+
+.chat-list-title {
+  color: var(--gold-light);
+  font-weight: 900;
+}
+
+.chat-list-meta {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.chat-list-count {
+  min-width: 28px;
+  height: 28px;
+
+  border-radius: 999px;
+
+  background: #ff3b30;
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 900;
+}

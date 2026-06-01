@@ -193,8 +193,13 @@ async function ensureAdminUser() {
 function requireLogin(req, res, next) {
   if (!req.session.userId) {
 
-    req.session.returnTo = req.originalUrl;
-
+if (
+  !req.originalUrl.startsWith('/chat/') &&
+  !req.originalUrl.startsWith('/js/') &&
+  !req.originalUrl.startsWith('/css/')
+) {
+  req.session.returnTo = req.originalUrl;
+}
     return res.redirect('/login?error=Please login first');
   }
 
@@ -583,23 +588,21 @@ app.post('/login', (req, res) => {
       [row.id]
     );
 
-    req.session.userId = row.id;
-    req.session.username = row.username;
-    req.session.isAdmin = row.is_admin;
+req.session.userId = row.id;
+req.session.username = row.username;
+req.session.isAdmin = row.is_admin;
+req.session.activeLeagueId = null;
 
-const returnTo = req.session.returnTo || '/';
-
-req.session.returnTo = null;
-
-return res.redirect(returnTo);
-
-
-    req.session.activeLeagueId = null;
 if (req.session.pendingJoinCode) {
   const code = req.session.pendingJoinCode;
   req.session.pendingJoinCode = null;
   return res.redirect('/join/' + code);
 }
+
+const returnTo = req.session.returnTo || '/';
+req.session.returnTo = null;
+
+return res.redirect(returnTo);
    
   });
 });
@@ -2232,7 +2235,7 @@ app.post('/unpin-match', requireLogin, async (req, res) => {
 });
 
 // =========================
-// private LEAGUES
+// PRIVATE LEAGUES
 // =========================
 
 app.post('/league/create', requireLogin, async (req, res) => {

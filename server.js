@@ -191,19 +191,22 @@ async function ensureAdminUser() {
 // =========================
 
 function requireLogin(req, res, next) {
-  if (!req.session.userId) {
-
-if (
-  !req.originalUrl.startsWith('/chat/') &&
-  !req.originalUrl.startsWith('/js/') &&
-  !req.originalUrl.startsWith('/css/')
-) {
-  req.session.returnTo = req.originalUrl;
-}
-    return res.redirect('/login?error=Please login first');
+  if (req.session && req.session.userId) {
+    return next();
   }
 
-  next();
+  const isApiRequest =
+    req.originalUrl.startsWith('/chat/') ||
+    req.originalUrl.includes('/chat/messages') ||
+    req.originalUrl.includes('/chat/send') ||
+    req.originalUrl.startsWith('/js/') ||
+    req.originalUrl.startsWith('/css/');
+
+  if (!isApiRequest) {
+    req.session.returnTo = req.originalUrl;
+  }
+
+  return res.redirect('/login');
 }
 
 function isAdmin(req, res, next) {

@@ -594,7 +594,6 @@ app.post('/register', async (req, res) => {
     req.session.userId = user.id;
     req.session.username = user.username;
     req.session.isAdmin = user.is_admin;
-    req.session.activeLeagueId = null;
 
     res.redirect('/');
   } catch (err) {
@@ -656,7 +655,6 @@ app.post('/login', (req, res) => {
 req.session.userId = row.id;
 req.session.username = row.username;
 req.session.isAdmin = row.is_admin;
-req.session.activeLeagueId = null;
 
 if (req.session.pendingJoinCode) {
   const code = req.session.pendingJoinCode;
@@ -2349,7 +2347,6 @@ app.post('/league/delete', isAdmin, async (req, res) => {
     await pool.query(`DELETE FROM league_members WHERE league_id = $1`, [leagueId]);
     await pool.query(`DELETE FROM leagues WHERE id = $1`, [leagueId]);
 
-    req.session.activeLeagueId = null;
     res.redirect('/leagues');
   } catch (err) {
     console.error(err);
@@ -2407,22 +2404,15 @@ const params = isAdminUser
   db.all(sql, params, (err, rows) => {
     if (err) return res.send('Error loading leagues');
 
-    const active = req.session.activeLeagueId;
 
 const list = rows.map(r => `
   <div class="league-card">
     <div class="league-title">${r.name}</div>
     <div class="league-meta"><b>Join Code:</b> ${r.join_code}</div>
 
-    ${active === r.id ? `<div class="league-badge">Active League</div>` : ''}
 
     <div class="league-actions">
-      ${active === r.id ? '' : `
-        <form method="POST" action="/league/switch" style="display:inline;">
-          <input type="hidden" name="league_id" value="${r.id}">
-          <button type="submit">Set as Active</button>
-        </form>
-      `}
+
 
       <a class="secondary-btn" href="/leaderboard/${r.id}">
         Leaderboard
@@ -2473,11 +2463,7 @@ ${isAdminUser ? `        <form
             </div>
 
 
-            <div class="status-pill">
-              Current Mode:
-              ${active ? `private League Active (ID: ${active})` : 'Global'}
-              ${active ? ` | <a href="/league/clear">Back to Global</a>` : ''}
-            </div>
+
 
             <div class="leagues-grid">
               ${list || `
@@ -2532,16 +2518,6 @@ ${isAdminUser ? `        <form
   );
 });
 
-app.post('/league/switch', requireLogin, (req, res) => {
-  const leagueId = Number(req.body.league_id);
-
-  if (!Number.isInteger(leagueId) || leagueId <= 0) {
-    return res.redirect('/leagues');
-  }
-
-  req.session.activeLeagueId = leagueId;
-  res.redirect('/games');
-});
 
 app.get('/join/:code', (req, res) => {
   const code = String(req.params.code || '').trim().toUpperCase();
@@ -2570,7 +2546,6 @@ app.get('/join/:code', (req, res) => {
             return res.send('Error joining league');
           }
 
-          req.session.activeLeagueId = league.id;
           res.redirect('/leagues');
         }
       );
@@ -2648,10 +2623,7 @@ app.get('/leaderboard/:leagueId', requireLogin, (req, res) => {
   );
 });
 
-app.get('/league/clear', (req, res) => {
-  req.session.activeLeagueId = null;
-  res.redirect('/games');
-});
+
 
 app.get('/league/:id/chat', requireLogin, async (req, res) => {
   const leagueId = Number(req.params.id);

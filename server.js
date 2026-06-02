@@ -2345,21 +2345,44 @@ app.post('/league/create', requireLogin, async (req, res) => {
 
 app.post('/league/join', requireLogin, (req, res) => {
   const code = String(req.body.join_code || '').trim().toUpperCase();
+
   if (!code) return res.send('Join code is required');
 
-  db.get(`SELECT id FROM leagues WHERE join_code = ?`, [code], (err, league) => {
-    if (err || !league) return res.send('League code not found');
+  db.get(
+    `SELECT id FROM leagues WHERE join_code = ?`,
+    [code],
+    (err, league) => {
+      if (err || !league) return res.send('League code not found');
 
-    db.run(
-      `INSERT INTO league_members (league_id, user_id) VALUES (?, ?) ON CONFLICT (league_id, user_id) DO NOTHING`,
-      [league.id, req.session.userId],
-      (err2) => {
-        if (err2) return res.send('Error joining league');
-        req.session.activeLeagueId = league.id;
-        res.redirect('/leagues');
-      }
-    );
-  });
+      db.run(
+        `
+        INSERT INTO league_members (league_id, user_id)
+        VALUES (?, ?)
+        ON CONFLICT (league_id, user_id) DO NOTHING
+        `,
+        [league.id, req.session.userId],
+        async function (err2) {
+          if (err2) return res.send('Error joining league');
+
+          if (this.changes > 0) {
+            await pool.query(
+              `
+              INSERT INTO league_messages (league_id, user_id, message)
+              VALUES ($1, $2, $3)
+              `,
+              [
+                league.id,
+                req.session.userId,
+                `🎉 ${req.session.username} joined the league`
+              ]
+            );
+          }
+
+          res.redirect('/leagues');
+        }
+      );
+    }
+  );
 });
 
 

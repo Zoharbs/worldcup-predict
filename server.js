@@ -6,6 +6,9 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 const { Pool } = require('pg');
 
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+
 const app = express();
 app.set('trust proxy', 1);
 const API_FOOTBALL_KEY = process.env.API_FOOTBALL_KEY;
@@ -26,6 +29,79 @@ app.use(session({
     sameSite: 'lax'
   }
 }));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const result = await pool.query(`SELECT * FROM users WHERE id = $1`, [id]);
+    done(null, result.rows[0]);
+  } catch (err) {
+    done(err);
+  }
+});
+
+passport.use(new GoogleStrategy(
+  {
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: `${process.env.BASE_URL}/auth/google/callback`
+  },
+  async (accessToken, refreshToken, profile, done) => {
+    try {
+      const googleId = profile.id;
+      const email = profile.emails?.[0]?.value || null;
+      const displayName = profile.displayName || 'Google User';
+
+      let result = await pool.query(
+        `SELECT * FROM users WHERE google_id = $1`,
+        [googleId]
+      );
+
+      if (result.rows[0]) {
+        return done(null, result.rows[0]);
+      }
+
+      let baseUsername = displayName
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '')
+        .slice(0, 18) || 'googleuser';
+
+      let username = baseUsername;
+      let counter = 1;
+
+      while (true) {
+        const existing = await pool.query(
+          `SELECT id FROM users WHERE username = $1`,
+          [username]
+        );
+
+        if (existing.rows.length === 0) break;
+
+        username = `${baseUsername}${counter}`;
+        counter++;
+      }
+
+      const created = await pool.query(
+        `
+        INSERT INTO users (username, password, google_id, email, auth_provider)
+        VALUES ($1, NULL, $2, $3, 'google')
+        RETURNING *
+        `,
+        [username, googleId, email]
+      );
+
+      return done(null, created.rows[0]);
+    } catch (err) {
+      return done(err);
+    }
+  }
+));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -71,11 +147,11 @@ const db = {
 
 async function setupDatabase() {
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      is_admin INTEGER DEFAULT 0,
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  username TEXT UNIQUE NOT NULL,
+  password TEXT,
+  is_admin INTEGER DEFAULT 0,
       credits_left INTEGER DEFAULT 100,
       knockout_bonus_given INTEGER DEFAULT 0,
       last_login_at TIMESTAMP,
@@ -83,11 +159,17 @@ async function setupDatabase() {
 
     )
   `);
+
+  await pool.query(`ALTER TABLE users ALTER COLUMN password DROP NOT NULL`);
+
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP`);
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMP`);
     await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`);
 
-  
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT UNIQUE`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT`);
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider TEXT DEFAULT 'local'`);
+      
   await pool.query(`
   CREATE TABLE IF NOT EXISTS league_messages (
     id SERIAL PRIMARY KEY,
@@ -1106,6 +1188,25 @@ app.get('/logout', (req, res) => {
     else res.redirect('/');
   });
 });
+
+app.get('/auth/google',
+  passport.authenticate('google', {
+    scope: ['profile', 'email']
+  })
+);
+
+app.get('/auth/google/callback',
+  passport.authenticate('google', {
+    failureRedirect: '/login'
+  }),
+  (req, res) => {
+    req.session.userId = req.user.id;
+    req.session.username = req.user.username;
+    req.session.isAdmin = req.user.is_admin;
+
+    res.redirect('/');
+  }
+);
 
 // =========================
 // STATIC / CONTENT PAGES

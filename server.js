@@ -509,6 +509,13 @@ function renderSideNav(req) {
 <a href="/chats" class="chat-mini-btn" title="Chats">
   💬
 </a>
+<a
+  href="https://instagram.com/predictwc"
+  target="_blank"
+  class="floating-instagram-btn"
+>
+  📸
+</a>
     <div id="sideNavOverlay" class="side-nav-overlay" onclick="closeSideNav()"></div>
 
     <aside id="sideNav" class="side-nav">

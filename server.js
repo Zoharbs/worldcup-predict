@@ -83,10 +83,10 @@ async function setupDatabase() {
 
     )
   `);
-await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP`);
-await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMP`);
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP`);
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen_at TIMESTAMP`);
   
-await pool.query(`
+  await pool.query(`
   CREATE TABLE IF NOT EXISTS league_messages (
     id SERIAL PRIMARY KEY,
     league_id INTEGER NOT NULL,
@@ -94,9 +94,9 @@ await pool.query(`
     message TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
-`);
+  `);
 
-await pool.query(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS competitions (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
@@ -152,14 +152,14 @@ await pool.query(`
     )
   `);
 
- await pool.query(`
-  CREATE TABLE IF NOT EXISTS chat_reads (
-    user_id INTEGER NOT NULL,
-    league_id INTEGER NOT NULL,
-    last_seen_message_id INTEGER DEFAULT 0,
-    PRIMARY KEY (user_id, league_id)
-  )
-`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS chat_reads (
+      user_id INTEGER NOT NULL,
+      league_id INTEGER NOT NULL,
+      last_seen_message_id INTEGER DEFAULT 0,
+      PRIMARY KEY (user_id, league_id)
+    )
+  `);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS league_members (
@@ -178,7 +178,16 @@ await pool.query(`
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, game_id)
   )
-`);
+  `);
+
+  await pool.query(`
+  CREATE TABLE IF NOT EXISTS global_messages (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+  `);
 }
 
 async function ensureAdminUser() {
@@ -2948,6 +2957,15 @@ app.get('/chats', requireLogin, (req, res) => {
             </div>
 
           <div class="form-card">
+          <a href="/chat" class="chat-list-card">
+  <div class="chat-list-main">
+    <div class="chat-list-title">Global Chat</div>
+    <div class="chat-list-preview">Talk with everyone on Predict World Cup</div>
+    <div class="chat-list-meta">Public chat</div>
+  </div>
+
+  <div class="chat-list-open">Open</div>
+</a>
             ${chatsHtml || '<p>No chats yet</p>'}
           </div>
         </div>
@@ -2995,6 +3013,164 @@ app.get('/chats', requireLogin, (req, res) => {
   });
 });
 
+app.get('/chat', requireLogin, (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="/css/style.css">
+      <title>Global Chat</title>
+    </head>
+    <body>
+      <div class="page-wrap">
+        <div class="top-nav">
+          <a href="/chats">Back to Chats</a>
+          <a href="/games">Games</a>
+          <a href="/">Home</a>
+        </div>
+
+        <div class="form-card">
+          <h1>Global Chat</h1>
+
+          <div id="chatMessages" class="chat-box"></div>
+
+          <form id="chatForm" class="chat-form">
+            <input id="chatInput" maxlength="300" placeholder="Write a message..." required>
+            <button type="submit">Send</button>
+          </form>
+        </div>
+      </div>
+
+      <script>
+        function formatChatTime(value) {
+          if (!value) return '';
+
+          const date = new Date(value);
+          const now = new Date();
+
+          const israelDate = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Jerusalem' }));
+          const israelNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Jerusalem' }));
+
+          const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+          const diffDays = Math.round(
+            (startOfDay(israelNow) - startOfDay(israelDate)) / 86400000
+          );
+
+          const time = israelDate.toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          });
+
+          if (diffDays === 0) return 'Today ' + time;
+          if (diffDays === 1) return 'Yesterday ' + time;
+          if (diffDays === -1) return 'Tomorrow ' + time;
+
+          return israelDate.getDate() + '/' + (israelDate.getMonth() + 1) + '/' + String(israelDate.getFullYear()).slice(2) + ' ' + time;
+        }
+
+        function isNearBottom(box) {
+          return box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+        }
+
+        async function loadMessages() {
+          const res = await fetch('/chat/messages');
+          const messages = await res.json();
+
+          const box = document.getElementById('chatMessages');
+
+          const oldScrollTop = box.scrollTop;
+          const oldScrollHeight = box.scrollHeight;
+          const shouldStickToBottom = isNearBottom(box);
+
+          box.innerHTML = messages.map(m => \`
+            <div class="chat-message" dir="auto">
+              <div class="chat-meta">
+                <b>\${m.username}</b>
+                <span>\${formatChatTime(m.created_at)}</span>
+              </div>
+              <div class="chat-text" dir="auto">\${m.message}</div>
+            </div>
+          \`).join('');
+
+          if (shouldStickToBottom) {
+            box.scrollTop = box.scrollHeight;
+          } else {
+            box.scrollTop = oldScrollTop + (box.scrollHeight - oldScrollHeight);
+          }
+        }
+
+        document.getElementById('chatForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          const input = document.getElementById('chatInput');
+          const message = input.value.trim();
+
+          if (!message) return;
+
+          await fetch('/chat/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message })
+          });
+
+          input.value = '';
+          await loadMessages();
+
+          const box = document.getElementById('chatMessages');
+          box.scrollTop = box.scrollHeight;
+        });
+
+        loadMessages();
+        setInterval(loadMessages, 2000);
+      </script>
+    </body>
+    </html>
+  `);
+});
+
+app.get('/chat/messages', requireLogin, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT gm.message, gm.created_at, u.username
+      FROM global_messages gm
+      JOIN users u ON u.id = gm.user_id
+      ORDER BY gm.created_at ASC
+      LIMIT 150
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.json([]);
+  }
+});
+
+app.post('/chat/send', requireLogin, async (req, res) => {
+  const message = String(req.body.message || '').trim();
+
+  if (!message || message.length > 300) {
+    return res.status(400).json({ ok: false });
+  }
+
+  try {
+    await pool.query(
+      `
+      INSERT INTO global_messages (user_id, message)
+      VALUES ($1, $2)
+      `,
+      [req.session.userId, message]
+    );
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ ok: false });
+  }
+});
 
 app.get('/chat/latest-id', requireLogin, async (req, res) => {
   try {

@@ -1677,7 +1677,7 @@ const params = isLoggedIn ? [userId, userId] : [];
           <div class="page-wrap">
             <h1>All Games</h1>
             ${isLoggedIn ? `<h3 class="muted">Connected as <a href="/profile/${req.session.userId}">${req.session.username}</a> | Credits left: ${creditsLeft}</h3>` : `<h3 class="muted">User not logged in</h3>`}
-            ${filterBar}
+            
             <div class="games-search-box">
   <input
     id="gamesSearch"

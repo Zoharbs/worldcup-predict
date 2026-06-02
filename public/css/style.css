@@ -2026,25 +2026,6 @@ button:active,
   color: #111;
 }
 
-.floating-instagram-btn {
-  position: fixed;
-  right: 20px;
-  top: 145px; /* קצת מתחת לצ'אט */
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: linear-gradient(
-    45deg,
-    #f58529,
-    #dd2a7b,
-    #8134af,
-    #515bd4
-  );
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  text-decoration: none;
-  z-index: 9999;
-  box-shadow: 0 4px 14px rgba(0,0,0,.25);
+.instagram-btn {
+  top: 130px;
 }

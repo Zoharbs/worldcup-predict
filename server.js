@@ -506,16 +506,21 @@ function renderSideNav(req) {
     <button class="side-nav-toggle" onclick="toggleSideNav()">
       ☰
     </button>
-<a href="/chats" class="chat-mini-btn" title="Chats">
+
+    <a href="/chats" class="chat-mini-btn" title="Chats">
   💬
 </a>
+
 <a
   href="https://instagram.com/predictwc"
   target="_blank"
-  class="floating-instagram-btn"
+  class="chat-mini-btn instagram-btn"
 >
   📸
 </a>
+
+
+
     <div id="sideNavOverlay" class="side-nav-overlay" onclick="closeSideNav()"></div>
 
     <aside id="sideNav" class="side-nav">

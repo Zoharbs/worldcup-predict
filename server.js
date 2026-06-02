@@ -586,6 +586,14 @@ app.get('/register', (req, res) => {
 
 app.post('/register', async (req, res) => {
   const username = String(req.body.username || '').trim();
+  if (username.includes('@')) {
+  return res.send(`
+    <script>
+      alert("Please choose a username, not an email address");
+      window.location.href = "/register";
+    </script>
+  `);
+}
   const password = String(req.body.password || '');
 
   if (!username || !password) {

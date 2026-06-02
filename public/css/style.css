@@ -2028,4 +2028,13 @@ button:active,
 
 .instagram-btn {
   top: 130px;
+
+  background: linear-gradient(
+    45deg,
+    #f58529,
+    #feda77,
+    #dd2a7b,
+    #8134af,
+    #515bd4
+  );
 }

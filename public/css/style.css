@@ -1961,3 +1961,38 @@ button:active,
 .league-prizes-preview b {
   color: var(--gold-light);
 }
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.analytics-card {
+  padding: 20px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+}
+
+.analytics-value {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--gold-light);
+}
+
+.analytics-label {
+  margin-top: 6px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.analytics-list-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}

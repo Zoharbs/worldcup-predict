@@ -3722,6 +3722,133 @@ app.get('/admin/stats', isAdmin, async (req, res) => {
   `);
 });
 
+app.get('/analytics', isAdmin, async (req, res) => {
+  try {
+    const usersResult = await pool.query(`
+      SELECT COUNT(*) AS count
+      FROM users
+    `);
+
+    const newUsersTodayResult = await pool.query(`
+      SELECT COUNT(*) AS count
+      FROM users
+      WHERE created_at >= CURRENT_DATE
+    `);
+
+    const leaguesResult = await pool.query(`
+      SELECT COUNT(*) AS count
+      FROM leagues
+    `);
+
+    const betsResult = await pool.query(`
+      SELECT COUNT(*) AS count
+      FROM bets
+    `);
+
+    const gamesResult = await pool.query(`
+      SELECT COUNT(*) AS count
+      FROM games
+    `);
+
+    const finishedGamesResult = await pool.query(`
+      SELECT COUNT(*) AS count
+      FROM games
+      WHERE status = 'finished'
+    `);
+
+    const leagueMessagesResult = await pool.query(`
+      SELECT COUNT(*) AS count
+      FROM league_messages
+    `);
+
+    const globalMessagesResult = await pool.query(`
+      SELECT COUNT(*) AS count
+      FROM global_messages
+    `);
+
+    const newestUsersResult = await pool.query(`
+      SELECT username, created_at
+      FROM users
+      ORDER BY created_at DESC
+      LIMIT 10
+    `);
+
+    const newestUsersHtml = newestUsersResult.rows.map(u => `
+      <div class="analytics-list-item">
+        <b>${u.username}</b>
+        <span>${new Date(u.created_at).toLocaleString()}</span>
+      </div>
+    `).join('');
+
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/css/style.css">
+        <title>Admin Analytics</title>
+      </head>
+
+      <body>
+        ${renderSideNav(req)}
+
+        <div class="page-wrap">
+          <a href="javascript:history.back()" class="back-btn">← Back</a>
+
+          <div class="section-title">Admin Analytics</div>
+          <div class="section-subtitle">
+            Site activity overview
+          </div>
+
+          <div class="analytics-grid">
+            <div class="analytics-card">
+              <div class="analytics-value">${usersResult.rows[0].count}</div>
+              <div class="analytics-label">Users</div>
+            </div>
+
+            <div class="analytics-card">
+              <div class="analytics-value">${newUsersTodayResult.rows[0].count}</div>
+              <div class="analytics-label">New Today</div>
+            </div>
+
+            <div class="analytics-card">
+              <div class="analytics-value">${leaguesResult.rows[0].count}</div>
+              <div class="analytics-label">Private Leagues</div>
+            </div>
+
+            <div class="analytics-card">
+              <div class="analytics-value">${betsResult.rows[0].count}</div>
+              <div class="analytics-label">Predictions</div>
+            </div>
+
+            <div class="analytics-card">
+              <div class="analytics-value">${finishedGamesResult.rows[0].count}/${gamesResult.rows[0].count}</div>
+              <div class="analytics-label">Finished Games</div>
+            </div>
+
+            <div class="analytics-card">
+              <div class="analytics-value">
+                ${Number(leagueMessagesResult.rows[0].count) + Number(globalMessagesResult.rows[0].count)}
+              </div>
+              <div class="analytics-label">Chat Messages</div>
+            </div>
+          </div>
+
+          <div class="form-card">
+            <h2>Newest Users</h2>
+            ${newestUsersHtml || '<p>No users yet</p>'}
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+  } catch (err) {
+    console.error(err);
+    res.send('Error loading analytics');
+  }
+});
+
 app.post('/admin/grant-knockout-bonus', isAdmin, (req, res) => {
   db.run(
     `UPDATE users SET credits_left = credits_left + 50, knockout_bonus_given = 1 WHERE knockout_bonus_given = 0`,

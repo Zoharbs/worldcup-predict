@@ -380,7 +380,9 @@ function renderSideNav(req) {
     <button class="side-nav-toggle" onclick="toggleSideNav()">
       ☰
     </button>
-
+<a href="/chats" class="chat-mini-btn" title="Chats">
+  💬
+</a>
     <div id="sideNavOverlay" class="side-nav-overlay" onclick="closeSideNav()"></div>
 
     <aside id="sideNav" class="side-nav">
@@ -1045,7 +1047,6 @@ app.get('/', (req, res) => {
             <a href="/leagues" class="auth-btn secondary">Private Leagues</a>
             <a href="/profile/${req.session.userId}" class="auth-btn secondary">My Profile</a>
             <a href="/my-bets" class="auth-btn secondary">My Bets</a>
-            <a href="/chats" class="filter-link">Chats</a>
             <a href="/change-password" class="auth-btn secondary">Change Password</a>
             ${req.session.isAdmin === 1 ? `<a href="/admin" class="auth-btn secondary">Admin</a>` : ''}
             <a href="/logout" class="auth-btn danger">Logout</a>

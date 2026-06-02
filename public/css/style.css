@@ -1918,3 +1918,30 @@ button:active,
   opacity: 1;
   pointer-events: auto;
 }
+
+.chat-mini-btn {
+  position: fixed;
+  top: 72px;
+  left: 18px;
+  z-index: 100001;
+
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--gold);
+  color: #111;
+  text-decoration: none;
+  font-size: 21px;
+  font-weight: 900;
+
+  box-shadow: 0 12px 28px rgba(0,0,0,0.28);
+}
+
+.chat-mini-btn:hover {
+  transform: translateY(-2px);
+}

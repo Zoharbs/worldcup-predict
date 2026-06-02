@@ -920,12 +920,9 @@ app.get('/help', (req, res) => {
         <div class="section-title help-title">How to Play</div>
         <div class="section-subtitle help-subtitle">Everything you need to know about the World Cup Challenge</div>
 
-        <div class="top-nav help-nav">
-          <a href="/">Home</a>
-          <a href="/games">Games</a>
-          <a href="/leaderboard">Leaderboard</a>
-          ${req.session.userId ? `<a href="/profile/${req.session.userId}">My Profile</a>` : ''}
-        </div>
+        <a href="javascript:history.back()" class="back-btn">
+  ← Back
+</a>
 
         <div class="help-card"><h3 class="help-card-title">What is World Cup Challenge?</h3><p class="help-text">World Cup Challenge is a prediction game for the FIFA World Cup. Predict match scores, spend your credits wisely, and compete for the top spot in the global leaderboard or inside your private leagues.</p></div>
         <div class="help-card"><h3 class="help-card-title">Credits System</h3><p class="help-text">Each player starts the tournament with <b>100 credits</b>.</p><p class="help-text">When the knockout stage begins, every player receives an additional <b>+50 credits</b>.</p><p class="help-text">Credits are limited, so every decision matters.</p></div>
@@ -1486,12 +1483,6 @@ app.get('/profile/:id', (req, res) => {
                     }
                   </div>
 
-                  <div class="profile-links">
-                    <a href="/leaderboard">Leaderboard</a>
-                    <a href="/leagues">Private Leagues</a>
-                    <a href="/games">Games</a>
-                    <a href="/">Home</a>
-                  </div>
                 </div>
               </div>
             <div id="chatToast" class="chat-toast">

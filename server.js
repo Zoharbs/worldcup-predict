@@ -372,6 +372,50 @@ function isStrongPassword(password) {
   );
 }
 
+function renderSideNav(req) {
+  const isLoggedIn = !!req.session.userId;
+  const isAdmin = Number(req.session.isAdmin) === 1;
+
+  return `
+    <button class="side-nav-toggle" onclick="toggleSideNav()">
+      ☰
+    </button>
+
+    <div id="sideNavOverlay" class="side-nav-overlay" onclick="closeSideNav()"></div>
+
+    <aside id="sideNav" class="side-nav">
+      <div class="side-nav-title">WorldCup Predict</div>
+
+      <a href="/">Home</a>
+      <a href="/games">Games</a>
+      <a href="/leaderboard">Leaderboard</a>
+
+      ${isLoggedIn ? `<a href="/leagues">Private Leagues</a>` : ''}
+      ${isLoggedIn ? `<a href="/chats">Chats</a>` : ''}
+      ${isLoggedIn ? `<a href="/my-bets">My Bets</a>` : ''}
+      ${isLoggedIn ? `<a href="/profile/${req.session.userId}">My Profile</a>` : ''}
+
+      <a href="/help">Help</a>
+
+      ${isAdmin ? `<a href="/admin">Admin</a>` : ''}
+
+      ${isLoggedIn ? `<a class="danger-link" href="/logout">Logout</a>` : `<a href="/login">Login</a>`}
+    </aside>
+
+    <script>
+      function toggleSideNav() {
+        document.getElementById('sideNav').classList.toggle('open-side-nav');
+        document.getElementById('sideNavOverlay').classList.toggle('show-side-nav-overlay');
+      }
+
+      function closeSideNav() {
+        document.getElementById('sideNav').classList.remove('open-side-nav');
+        document.getElementById('sideNavOverlay').classList.remove('show-side-nav-overlay');
+      }
+    </script>
+  `;
+}
+
 // =========================
 // API SYNC
 // =========================
@@ -652,7 +696,7 @@ app.get('/change-password', requireLogin, (req, res) => {
           <title>Change Password</title>
           <link rel="stylesheet" href="/css/style.css">
         </head>
-        <body>
+        <body> ${renderSideNav(req)}
           <div class="page-wrap">
             <div class="form-card">
               <h1>Change Password</h1>
@@ -694,7 +738,7 @@ app.get('/change-password', requireLogin, (req, res) => {
       <title>Change Password</title>
       <link rel="stylesheet" href="/css/style.css">
     </head>
-    <body>
+    <body> ${renderSideNav(req)}
       <div class="page-wrap">
         <div class="form-card">
           <h1>Change Password</h1>
@@ -809,7 +853,7 @@ app.get('/forgot-password', (req, res) => {
       <link rel="stylesheet" href="/css/style.css">
     </head>
 
-    <body>
+    <body> ${renderSideNav(req)}
       <div class="center-page">
         <div class="form-card">
 
@@ -873,7 +917,7 @@ app.get('/help', (req, res) => {
      <title>How to Play</title>
       <link rel="stylesheet" href="/css/style.css">
     </head>
-    <body>
+    <body> ${renderSideNav(req)}
       <div class="page-wrap help-page">
         <div class="section-title help-title">How to Play</div>
         <div class="section-subtitle help-subtitle">Everything you need to know about the World Cup Challenge</div>
@@ -916,7 +960,7 @@ app.get('/install-app', (req, res) => {
 <meta name="theme-color" content="#e5b947">
     </head>
 
-    <body>
+    <body> ${renderSideNav(req)}
     
       <div class="page-wrap">
         <div class="form-card">
@@ -1067,7 +1111,7 @@ app.get('/', (req, res) => {
           <title>Predict Worldcup</title>
         </head>
 
-        <body>
+        <body> ${renderSideNav(req)}
         <div class="install-banner">
   📱 Install Predict WorldCup on your phone
   <a href="/install-app">Learn how</a>
@@ -1263,7 +1307,7 @@ app.get('/leaderboard', (req, res) => {
 <link rel="icon" href="/favicon.ico?v=31">       <title>Leaderboard</title>
         <link rel="stylesheet" href="/css/style.css">
       </head>
-      <body>
+      <body> ${renderSideNav(req)}
         <div class="page-wrap">
           <div class="section-title">Leaderboard</div>
           <div class="section-subtitle">Global ranking of all players</div>
@@ -1392,7 +1436,7 @@ app.get('/profile/:id', (req, res) => {
               <title>User Profile</title>
               <link rel="stylesheet" href="/css/style.css">
             </head>
-            <body>
+            <body> ${renderSideNav(req)}
               <div class="profile-page">
                 <div class="profile-card">
                   <div class="profile-title">${userStats.username}</div>
@@ -1515,20 +1559,7 @@ const params = isLoggedIn ? [userId, userId] : [];
         return res.send('Error loading games');
       }
 
-      const filterBar = `
-        <div class="filters-bar">
-          <div class="filters-nav">
-            <a href="/" class="filter-link">Home</a>
-            <a href="/leaderboard" class="filter-link">Leaderboard</a>
-            ${isLoggedIn ? `<a href="/leagues" class="filter-link">Private Leagues</a>` : ''}
-            ${isLoggedIn ? `<a href="/profile/${req.session.userId}" class="filter-link">My Profile</a>` : ''}
-            ${isLoggedIn ? `<a href="/my-bets" class="filter-link">My Bets</a>` : ''}
-            ${isLoggedIn ? `<a href="/chats" class="filter-link">Chats</a>` : ''}
-            ${activeLeagueId ? `<a href="/leaderboard/${activeLeagueId}" class="filter-link">Active League Leaderboard</a>` : ''}
-            ${activeLeagueId ? `<a href="/league/clear" class="filter-link danger-link">Back to general</a>` : ''}
-          </div>
-        </div>
-      `;
+
 
       const now = getIsraelNowParts();
       const todayStr = now.date;
@@ -1644,7 +1675,7 @@ const params = isLoggedIn ? [userId, userId] : [];
 <link rel="icon" href="/favicon.ico?v=31">      <title>Game list</title>
           <link rel="stylesheet" href="/css/style.css">
         </head>
-        <body>
+        <body> ${renderSideNav(req)}
           <div class="page-wrap">
             <h1>All Games</h1>
             ${isLoggedIn ? `<h3 class="muted">Connected as <a href="/profile/${req.session.userId}">${req.session.username}</a> | Credits left: ${creditsLeft}</h3>` : `<h3 class="muted">User not logged in</h3>`}
@@ -1929,7 +1960,7 @@ app.get('/game/:id', (req, res) => {
         <title>${game.home_team} vs ${game.away_team}</title>
       </head>
 
-      <body>
+      <body> ${renderSideNav(req)}
         <div class="page-wrap match-page-wrap">
 
           <div class="top-nav">
@@ -2205,7 +2236,7 @@ app.get('/my-bets', requireLogin, (req, res) => {
       <title>My Bets</title>
         <link rel="stylesheet" href="/css/style.css">
       </head>
-      <body>
+      <body> ${renderSideNav(req)}
         <div class="page-wrap">
           <div class="section-title">My Bets</div>
           <div class="section-subtitle">Track all your World Cup predictions in one place</div>
@@ -2443,20 +2474,13 @@ ${isAdminUser ? `        <form
           <link rel="stylesheet" href="/css/style.css">
         </head>
 
-        <body>
+        <body> ${renderSideNav(req)}
           <div class="page-wrap">
             <div class="section-title">My private Leagues</div>
             <div class="section-subtitle">
               Create a league, join one, and compete with privates
             </div>
 
-            <div class="top-nav">
-              <a href="/">Home</a>
-              <a href="/games">Games</a>
-              <a href="/leaderboard">Global Leaderboard</a>
-                <a href="/chats">Chats</a>
-              <a href="/profile/${req.session.userId}">My Profile</a>
-            </div>
 
             <div class="status-pill">
               Current Mode:
@@ -2619,7 +2643,7 @@ app.get('/leaderboard/:leagueId', requireLogin, (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">     
   <title>League Leaderboard</title><link rel="stylesheet" href="/css/style.css"></head>
-          <body><div class="page-wrap"><div class="section-title">League Leaderboard</div><div class="section-subtitle">${league.name}</div><div class="top-nav"><a href="/leagues">Private Leagues</a><a href="/games">Games</a><a href="/leaderboard">Global Leaderboard</a>  <a href="/chats">Chats</a></div><div class="table-card"><table><tr><th>Rank</th><th>User</th><th>Points</th><th>Credits Left</th></tr>${tableRows || '<tr><td colspan="4">No data</td></tr>'}</table></div></div><div id="chatToast" class="chat-toast">
+          <body> ${renderSideNav(req)}<div class="page-wrap"><div class="section-title">League Leaderboard</div><div class="section-subtitle">${league.name}</div><div class="top-nav"><a href="/leagues">Private Leagues</a><a href="/games">Games</a><a href="/leaderboard">Global Leaderboard</a>  <a href="/chats">Chats</a></div><div class="table-card"><table><tr><th>Rank</th><th>User</th><th>Points</th><th>Credits Left</th></tr>${tableRows || '<tr><td colspan="4">No data</td></tr>'}</table></div></div><div id="chatToast" class="chat-toast">
   <div class="chat-toast-title" id="chatToastTitle"></div>
   <div class="chat-toast-text" id="chatToastText"></div>
 </div>
@@ -2681,7 +2705,7 @@ await pool.query(
       <link rel="stylesheet" href="/css/style.css">
       <title>League Chat</title>
     </head>
-    <body>
+    <body> ${renderSideNav(req)}
       <div class="page-wrap">
         <div class="top-nav">
           <a href="/leagues">Back to Leagues</a>
@@ -2942,7 +2966,7 @@ app.get('/chats', requireLogin, (req, res) => {
         <link rel="stylesheet" href="/css/style.css">
         <title>Chats</title>
       </head>
-      <body>
+      <body> ${renderSideNav(req)}
         <div class="page-wrap">
           <div class="top-nav">
             <a href="/">Home</a>
@@ -3023,7 +3047,7 @@ app.get('/chat', requireLogin, (req, res) => {
       <link rel="stylesheet" href="/css/style.css">
       <title>Global Chat</title>
     </head>
-    <body>
+    <body> ${renderSideNav(req)}
       <div class="page-wrap">
         <div class="top-nav">
           <a href="/chats">Back to Chats</a>
@@ -3262,7 +3286,7 @@ app.get('/admin/users', isAdmin, (req, res) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">
   <title>Admin Users</title><link rel="stylesheet" href="/css/style.css"></head>
-      <body><div class="page-wrap"><div class="section-title">Admin Users</div><div class="section-subtitle">Manage users, reset points, and remove accounts</div><div class="top-nav"><a href="/admin">Admin</a><a href="/">Home</a><a href="/leaderboard">Leaderboard</a></div><div class="table-card"><table><tr><th>ID</th><th>Username</th><th>Admin</th><th>Total Points</th><th>Credits Left</th><th>Actions</th></tr>${tableRows || `<tr><td colspan="6">No users found</td></tr>`}</table></div></div><div id="chatToast" class="chat-toast">
+      <body> ${renderSideNav(req)}<div class="page-wrap"><div class="section-title">Admin Users</div><div class="section-subtitle">Manage users, reset points, and remove accounts</div><div class="top-nav"><a href="/admin">Admin</a><a href="/">Home</a><a href="/leaderboard">Leaderboard</a></div><div class="table-card"><table><tr><th>ID</th><th>Username</th><th>Admin</th><th>Total Points</th><th>Credits Left</th><th>Actions</th></tr>${tableRows || `<tr><td colspan="6">No users found</td></tr>`}</table></div></div><div id="chatToast" class="chat-toast">
   <div class="chat-toast-title" id="chatToastTitle"></div>
   <div class="chat-toast-text" id="chatToastText"></div>
 </div>
@@ -3321,7 +3345,7 @@ app.get('/admin/add-game', isAdmin, (req, res) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">     
 <title>Add Game</title></head>
-      <body><h1>Add New Game</h1><form action="/admin/add-game" method="POST"><label>Competition:<select name="competition_id" required>${options}</select></label><br><br><label>Home Team:<input type="text" name="home_team" required></label><br><br><label>Away Team:<input type="text" name="away_team" required></label><br><br><label>Date:<input type="date" name="game_date" required></label><br><br><label>Time:<input type="time" name="game_time" required></label><br><br><button type="submit">Add Game</button></form><br><a href="/admin">Back to Admin</a><div id="chatToast" class="chat-toast">
+      <body> ${renderSideNav(req)}<h1>Add New Game</h1><form action="/admin/add-game" method="POST"><label>Competition:<select name="competition_id" required>${options}</select></label><br><br><label>Home Team:<input type="text" name="home_team" required></label><br><br><label>Away Team:<input type="text" name="away_team" required></label><br><br><label>Date:<input type="date" name="game_date" required></label><br><br><label>Time:<input type="time" name="game_time" required></label><br><br><button type="submit">Add Game</button></form><br><a href="/admin">Back to Admin</a><div id="chatToast" class="chat-toast">
   <div class="chat-toast-title" id="chatToastTitle"></div>
   <div class="chat-toast-text" id="chatToastText"></div>
 </div>
@@ -3365,7 +3389,7 @@ app.get('/admin/results', isAdmin, (req, res) => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">
-        <title>Set Results</title></head><body><h1>Set Results (Admin)</h1>${html || '<p>No games</p>'}<a href="/admin">Back to Admin</a><div id="chatToast" class="chat-toast">
+        <title>Set Results</title></head><body> ${renderSideNav(req)}<h1>Set Results (Admin)</h1>${html || '<p>No games</p>'}<a href="/admin">Back to Admin</a><div id="chatToast" class="chat-toast">
   <div class="chat-toast-title" id="chatToastTitle"></div>
   <div class="chat-toast-text" id="chatToastText"></div>
 </div>
@@ -3453,7 +3477,7 @@ app.get('/admin/stats', isAdmin, async (req, res) => {
       <link rel="stylesheet" href="/css/style.css">
      <link rel="icon" href="/favicon.ico?v=31">
     </head>
-    <body>
+    <body> ${renderSideNav(req)}
       <div class="page-wrap">
         <h1>Admin Stats</h1>
 
@@ -3526,7 +3550,7 @@ app.get('/update-user', requireLogin, (req, res) => {
       <head> <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#e5b947"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Update User</title></head>
 <link rel="icon" href="/favicon.ico?v=31">
-   <body><h1>Update User</h1><form action="/update-user" method="POST"><label>Username:<input type="text" name="username" value="${row.username}"></label><br><br><label>Password:<input type="password" name="password" placeholder="Use Change Password page"></label><br><br><button type="submit">Update</button></form><div id="chatToast" class="chat-toast">
+   <body> ${renderSideNav(req)}<h1>Update User</h1><form action="/update-user" method="POST"><label>Username:<input type="text" name="username" value="${row.username}"></label><br><br><label>Password:<input type="password" name="password" placeholder="Use Change Password page"></label><br><br><button type="submit">Update</button></form><div id="chatToast" class="chat-toast">
   <div class="chat-toast-title" id="chatToastTitle"></div>
   <div class="chat-toast-text" id="chatToastText"></div>
 </div>

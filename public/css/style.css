@@ -1820,3 +1820,101 @@ button:active,
 .chat-list-card[dir="auto"] {
   unicode-bidi: plaintext;
 }
+
+
+.side-nav-toggle {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  z-index: 100001;
+
+  width: 46px;
+  height: 46px;
+
+  border-radius: 14px;
+
+  padding: 0;
+  min-height: auto;
+
+  font-size: 22px;
+  font-weight: 900;
+
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--gold-light);
+
+  backdrop-filter: blur(10px);
+}
+
+.side-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: 280px;
+  max-width: 82vw;
+  height: 100dvh;
+
+  z-index: 100000;
+
+  padding: 84px 18px 24px;
+
+  background: rgba(13, 19, 27, 0.98);
+  border-right: 1px solid rgba(255,255,255,0.1);
+
+  box-shadow: 20px 0 60px rgba(0,0,0,0.45);
+
+  transform: translateX(-105%);
+  transition: 0.25s ease;
+}
+
+.open-side-nav {
+  transform: translateX(0);
+}
+
+.side-nav-title {
+  color: var(--gold-light);
+  font-size: 20px;
+  font-weight: 900;
+  margin-bottom: 18px;
+}
+
+.side-nav a {
+  display: block;
+
+  padding: 13px 14px;
+  margin: 8px 0;
+
+  border-radius: 14px;
+
+  text-decoration: none;
+  color: var(--text);
+
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.07);
+
+  font-weight: 800;
+}
+
+.side-nav a:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.side-nav-overlay {
+  position: fixed;
+  inset: 0;
+
+  z-index: 99999;
+
+  background: rgba(0,0,0,0.45);
+
+  opacity: 0;
+  pointer-events: none;
+
+  transition: 0.2s ease;
+}
+
+.show-side-nav-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}

@@ -2912,7 +2912,7 @@ app.get('/league/:id/prizes', requireLogin, async (req, res) => {
       </head>
 
       <body>
-        ${renderNavigation(req)}
+        ${renderSideNav(req)}
 
         <div class="page-wrap">
           <a href="javascript:history.back()" class="back-btn">

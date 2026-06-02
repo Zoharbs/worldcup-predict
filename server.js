@@ -2973,10 +2973,10 @@ app.get('/league/:id/prizes', requireLogin, async (req, res) => {
       </body>
       </html>
     `);
-  } catch (err) {
-    console.error(err);
-    res.send('Error loading prizes');
-  }
+} catch (err) {
+  console.error(err);
+  res.send(err.message);
+}
 });
 
 app.post('/league/:id/prizes', requireLogin, async (req, res) => {

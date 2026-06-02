@@ -45,7 +45,11 @@ passport.deserializeUser(async (id, done) => {
     done(err);
   }
 });
-
+console.log('BASE_URL =', process.env.BASE_URL);
+console.log(
+  'GOOGLE CALLBACK =',
+  `${process.env.BASE_URL}/auth/google/callback`
+);
 passport.use(new GoogleStrategy(
   {
     clientID: process.env.GOOGLE_CLIENT_ID,

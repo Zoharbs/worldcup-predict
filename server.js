@@ -1311,11 +1311,9 @@ app.get('/leaderboard', (req, res) => {
         <div class="page-wrap">
           <div class="section-title">Leaderboard</div>
           <div class="section-subtitle">Global ranking of all players</div>
-          <div class="top-nav">
-            <a href="/">Home</a>
-            <a href="/games">Games</a>
-            ${req.session.userId ? `<a href="/profile/${req.session.userId}">My Profile</a>` : ''}
-          </div>
+         <a href="javascript:history.back()" class="back-btn">
+  ← Back
+</a>
           <div class="table-card">
             <table>
               <tr><th>Rank</th><th>Username</th><th>Points</th><th>Credits Left</th></tr>
@@ -1963,10 +1961,9 @@ app.get('/game/:id', (req, res) => {
       <body> ${renderSideNav(req)}
         <div class="page-wrap match-page-wrap">
 
-          <div class="top-nav">
-            <a href="/games">← Back to Games</a>
-            <a href="/">Home</a>
-          </div>
+ <a href="javascript:history.back()" class="back-btn">
+  ← Back
+</a>
 
           <div class="match-page-card match-hero-card">
             <div class="match-stage">
@@ -2240,13 +2237,7 @@ app.get('/my-bets', requireLogin, (req, res) => {
         <div class="page-wrap">
           <div class="section-title">My Bets</div>
           <div class="section-subtitle">Track all your World Cup predictions in one place</div>
-          <div class="top-nav">
-            <a href="/">Home</a>
-            <a href="/games">Games</a>
-            <a href="/leaderboard">Leaderboard</a>
-            <a href="/profile/${req.session.userId}">My Profile</a>
-              <a href="/chats">Chats</a>
-          </div>
+
           <div class="bets-page">${cards || `<div class="empty-state">You have not placed any bets yet.</div>`}</div>
         </div>
       <div id="chatToast" class="chat-toast">
@@ -2643,7 +2634,8 @@ app.get('/leaderboard/:leagueId', requireLogin, (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">     
   <title>League Leaderboard</title><link rel="stylesheet" href="/css/style.css"></head>
-          <body> ${renderSideNav(req)}<div class="page-wrap"><div class="section-title">League Leaderboard</div><div class="section-subtitle">${league.name}</div><div class="top-nav"><a href="/leagues">Private Leagues</a><a href="/games">Games</a><a href="/leaderboard">Global Leaderboard</a>  <a href="/chats">Chats</a></div><div class="table-card"><table><tr><th>Rank</th><th>User</th><th>Points</th><th>Credits Left</th></tr>${tableRows || '<tr><td colspan="4">No data</td></tr>'}</table></div></div><div id="chatToast" class="chat-toast">
+          <body> ${renderSideNav(req)}<div class="page-wrap"><div class="section-title">League Leaderboard</div><div class="section-subtitle">${league.name}</div>
+          <div class="table-card"><table><tr><th>Rank</th><th>User</th><th>Points</th><th>Credits Left</th></tr>${tableRows || '<tr><td colspan="4">No data</td></tr>'}</table></div></div><div id="chatToast" class="chat-toast">
   <div class="chat-toast-title" id="chatToastTitle"></div>
   <div class="chat-toast-text" id="chatToastText"></div>
 </div>
@@ -2707,12 +2699,9 @@ await pool.query(
     </head>
     <body> ${renderSideNav(req)}
       <div class="page-wrap">
-        <div class="top-nav">
-          <a href="/leagues">Back to Leagues</a>
-          <a href="/leaderboard/${leagueId}">Leaderboard</a>
-          <a href="/">Home</a>
-            <a href="/chats">Chats</a>
-        </div>
+  <a href="javascript:history.back()" class="back-btn">
+  ← Back
+</a>
 
         <div class="form-card">
           <h1>League Chat</h1>
@@ -2968,12 +2957,9 @@ app.get('/chats', requireLogin, (req, res) => {
       </head>
       <body> ${renderSideNav(req)}
         <div class="page-wrap">
-          <div class="top-nav">
-            <a href="/">Home</a>
-            <a href="/games">Games</a>
-            <a href="/leagues">Leagues</a>
-      
-          </div>
+ <a href="javascript:history.back()" class="back-btn">
+  ← Back
+</a>
 
           <h1>Chats</h1>
             <div class="section-subtitle">
@@ -3049,11 +3035,9 @@ app.get('/chat', requireLogin, (req, res) => {
     </head>
     <body> ${renderSideNav(req)}
       <div class="page-wrap">
-        <div class="top-nav">
-          <a href="/chats">Back to Chats</a>
-          <a href="/games">Games</a>
-          <a href="/">Home</a>
-        </div>
+        <a href="javascript:history.back()" class="back-btn">
+  ← Back
+</a>
 
         <div class="form-card">
           <h1>Global Chat</h1>
@@ -3286,7 +3270,10 @@ app.get('/admin/users', isAdmin, (req, res) => {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="/favicon.ico?v=31">
   <title>Admin Users</title><link rel="stylesheet" href="/css/style.css"></head>
-      <body> ${renderSideNav(req)}<div class="page-wrap"><div class="section-title">Admin Users</div><div class="section-subtitle">Manage users, reset points, and remove accounts</div><div class="top-nav"><a href="/admin">Admin</a><a href="/">Home</a><a href="/leaderboard">Leaderboard</a></div><div class="table-card"><table><tr><th>ID</th><th>Username</th><th>Admin</th><th>Total Points</th><th>Credits Left</th><th>Actions</th></tr>${tableRows || `<tr><td colspan="6">No users found</td></tr>`}</table></div></div><div id="chatToast" class="chat-toast">
+      <body> ${renderSideNav(req)}<div class="page-wrap"><div class="section-title">Admin Users</div><div class="section-subtitle">Manage users, reset points, and remove accounts</div><div <a href="javascript:history.back()" class="back-btn">
+  ← Back
+</a>
+<div class="table-card"><table><tr><th>ID</th><th>Username</th><th>Admin</th><th>Total Points</th><th>Credits Left</th><th>Actions</th></tr>${tableRows || `<tr><td colspan="6">No users found</td></tr>`}</table></div></div><div id="chatToast" class="chat-toast">
   <div class="chat-toast-title" id="chatToastTitle"></div>
   <div class="chat-toast-text" id="chatToastText"></div>
 </div>
@@ -3750,12 +3737,9 @@ const nationThemeClass = nationThemes[nationName] || '';
 
       <body class="${nationThemeClass}">
         <div class="page-wrap">
-          <div class="top-nav">
-            <a href="/">Home</a>
-            <a href="/games">Games</a>
-            <a href="/leaderboard">Leaderboard</a>
-              <a href="/chats">Chats</a>
-          </div>
+<a href="javascript:history.back()" class="back-btn">
+  ← Back
+</a>
 
           <div class="profile-card">
             ${logo ? `<img src="${logo}" class="team-logo" style="width:80px;height:80px;">` : ''}

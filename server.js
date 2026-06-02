@@ -3843,10 +3843,10 @@ app.get('/analytics', isAdmin, async (req, res) => {
       </body>
       </html>
     `);
-  } catch (err) {
-    console.error(err);
-    res.send('Error loading analytics');
-  }
+} catch (err) {
+  console.error(err);
+  res.send(err.message);
+}
 });
 
 app.post('/admin/grant-knockout-bonus', isAdmin, (req, res) => {

@@ -188,6 +188,31 @@ async function setupDatabase() {
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
   `);
+
+  await pool.query(`
+  ALTER TABLE leagues
+  ADD COLUMN IF NOT EXISTS prize_1 TEXT
+`);
+
+await pool.query(`
+  ALTER TABLE leagues
+  ADD COLUMN IF NOT EXISTS prize_2 TEXT
+`);
+
+await pool.query(`
+  ALTER TABLE leagues
+  ADD COLUMN IF NOT EXISTS prize_3 TEXT
+`);
+
+await pool.query(`
+  ALTER TABLE leagues
+  ADD COLUMN IF NOT EXISTS prize_4 TEXT
+`);
+
+await pool.query(`
+  ALTER TABLE leagues
+  ADD COLUMN IF NOT EXISTS prize_5 TEXT
+`);
 }
 
 async function ensureAdminUser() {
@@ -2421,6 +2446,9 @@ const list = rows.map(r => `
         class="secondary-btn">
         Copy Invite Link
       </button>
+      <a class="secondary-btn" href="/league/${r.id}/prizes">
+  Prizes
+</a>
 
 ${isAdminUser ? `        <form
           method="POST"
@@ -2842,6 +2870,172 @@ app.post('/league/:id/chat/send', requireLogin, async (req, res) => {
   );
 
   res.json({ ok: true });
+});
+// =========================
+// league prizes
+// =========================
+app.get('/league/:id/prizes', requireLogin, async (req, res) => {
+  const leagueId = Number(req.params.id);
+
+  if (!Number.isInteger(leagueId) || leagueId <= 0) {
+    return res.send('Invalid league');
+  }
+
+  try {
+    const result = await pool.query(
+      `
+      SELECT *
+      FROM leagues
+      WHERE id = $1
+      `,
+      [leagueId]
+    );
+
+    const league = result.rows[0];
+
+    if (!league) {
+      return res.send('League not found');
+    }
+
+    const canEdit =
+      Number(req.session.isAdmin) === 1 ||
+      Number(req.session.userId) === Number(league.owner_user_id);
+
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/css/style.css">
+        <title>League Prizes</title>
+      </head>
+
+      <body>
+        ${renderNavigation(req)}
+
+        <div class="page-wrap">
+          <a href="javascript:history.back()" class="back-btn">
+            ← Back
+          </a>
+
+          <div class="form-card">
+            <h1>${league.name} Prizes</h1>
+
+            <p class="muted">
+              Define what each top position wins in this league.
+            </p>
+
+            <form method="POST" action="/league/${league.id}/prizes">
+              <input
+                name="prize_1"
+                placeholder="🥇 First place prize"
+                value="${league.prize_1 || ''}"
+                ${canEdit ? '' : 'readonly'}
+              >
+
+              <input
+                name="prize_2"
+                placeholder="🥈 Second place prize"
+                value="${league.prize_2 || ''}"
+                ${canEdit ? '' : 'readonly'}
+              >
+
+              <input
+                name="prize_3"
+                placeholder="🥉 Third place prize"
+                value="${league.prize_3 || ''}"
+                ${canEdit ? '' : 'readonly'}
+              >
+
+              <input
+                name="prize_4"
+                placeholder="4th place prize"
+                value="${league.prize_4 || ''}"
+                ${canEdit ? '' : 'readonly'}
+              >
+
+              <input
+                name="prize_5"
+                placeholder="5th place prize"
+                value="${league.prize_5 || ''}"
+                ${canEdit ? '' : 'readonly'}
+              >
+
+              ${
+                canEdit
+                  ? `<button type="submit">Save Prizes</button>`
+                  : `<p class="muted">Only the league creator or admin can edit prizes.</p>`
+              }
+            </form>
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+  } catch (err) {
+    console.error(err);
+    res.send('Error loading prizes');
+  }
+});
+
+app.post('/league/:id/prizes', requireLogin, async (req, res) => {
+  const leagueId = Number(req.params.id);
+
+  if (!Number.isInteger(leagueId) || leagueId <= 0) {
+    return res.send('Invalid league');
+  }
+
+  try {
+    const leagueResult = await pool.query(
+      `
+      SELECT owner_user_id
+      FROM leagues
+      WHERE id = $1
+      `,
+      [leagueId]
+    );
+
+    const league = leagueResult.rows[0];
+
+    if (!league) {
+      return res.send('League not found');
+    }
+
+    const canEdit =
+      Number(req.session.isAdmin) === 1 ||
+      Number(req.session.userId) === Number(league.owner_user_id);
+
+    if (!canEdit) {
+      return res.send('Not allowed');
+    }
+
+    await pool.query(
+      `
+      UPDATE leagues
+      SET
+        prize_1 = $1,
+        prize_2 = $2,
+        prize_3 = $3,
+        prize_4 = $4,
+        prize_5 = $5
+      WHERE id = $6
+      `,
+      [
+        req.body.prize_1 || null,
+        req.body.prize_2 || null,
+        req.body.prize_3 || null,
+        req.body.prize_4 || null,
+        req.body.prize_5 || null,
+        leagueId
+      ]
+    );
+
+    res.redirect('/league/' + leagueId + '/prizes');
+  } catch (err) {
+    console.error(err);
+    res.send('Error saving prizes');
+  }
 });
 
 // =========================

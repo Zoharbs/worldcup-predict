@@ -197,6 +197,19 @@ async function setupDatabase() {
 `);
 
 await pool.query(`
+  CREATE TABLE IF NOT EXISTS rank_movement_announcements (
+    id SERIAL PRIMARY KEY,
+    game_id INTEGER NOT NULL,
+    league_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    old_rank INTEGER NOT NULL,
+    new_rank INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(game_id, league_id, user_id, old_rank, new_rank)
+  )
+`);
+
+await pool.query(`
   ALTER TABLE leagues
   ADD COLUMN IF NOT EXISTS prize_2 TEXT
 `);
@@ -445,6 +458,8 @@ function renderSideNav(req) {
   `;
 }
 
+
+
 // =========================
 // API SYNC
 // =========================
@@ -471,20 +486,176 @@ async function fetchWorldCupMatches() {
   return data.response || [];
 }
 
+async function getLeagueRanking(leagueId) {
+  const result = await pool.query(
+    `
+    SELECT
+      u.id AS user_id,
+      u.username,
+      COALESCE(SUM(b.points_won), 0) AS total_points
+    FROM league_members lm
+    JOIN users u ON u.id = lm.user_id
+    LEFT JOIN bets b ON b.user_id = u.id
+    WHERE lm.league_id = $1
+    GROUP BY u.id, u.username
+    ORDER BY total_points DESC, u.username ASC
+    `,
+    [leagueId]
+  );
+
+  const ranks = {};
+
+  result.rows.forEach((r, index) => {
+    ranks[r.user_id] = {
+      rank: index + 1,
+      username: r.username,
+      points: Number(r.total_points || 0)
+    };
+  });
+
+  return ranks;
+}
+
+function getPrizeZoneSize(league) {
+  let size = 0;
+
+  if (league.prize_1) size = 1;
+  if (league.prize_2) size = 2;
+  if (league.prize_3) size = 3;
+  if (league.prize_4) size = 4;
+  if (league.prize_5) size = 5;
+
+  return size;
+}
+
 async function recalculatePointsForGameByExternalId(externalId, homeScore, awayScore) {
-  const gameResult = await pool.query(`SELECT id, stage FROM games WHERE external_id = $1`, [externalId]);
+  const gameResult = await pool.query(
+    `SELECT id, stage FROM games WHERE external_id = $1`,
+    [externalId]
+  );
+
   const game = gameResult.rows[0];
   if (!game) return;
 
+  const leaguesResult = await pool.query(
+    `
+    SELECT DISTINCT
+      l.id,
+      l.name,
+      l.prize_1,
+      l.prize_2,
+      l.prize_3,
+      l.prize_4,
+      l.prize_5
+    FROM leagues l
+    JOIN league_members lm ON lm.league_id = l.id
+    JOIN bets b ON b.user_id = lm.user_id
+    WHERE b.game_id = $1
+    `,
+    [game.id]
+  );
+
+  const beforeRankings = {};
+
+  for (const league of leaguesResult.rows) {
+    beforeRankings[league.id] = await getLeagueRanking(league.id);
+  }
+
   const betsResult = await pool.query(
-    `SELECT id, home_guess, away_guess, credits_used FROM bets WHERE game_id = $1`,
+    `
+    SELECT id, user_id, home_guess, away_guess, credits_used
+    FROM bets
+    WHERE game_id = $1
+    `,
     [game.id]
   );
 
   for (const b of betsResult.rows) {
-    const base = calcPoints(b.home_guess, b.away_guess, homeScore, awayScore, game.stage);
+    const base = calcPoints(
+      b.home_guess,
+      b.away_guess,
+      homeScore,
+      awayScore,
+      game.stage
+    );
+
     const pts = base * b.credits_used;
-    await pool.query(`UPDATE bets SET points_won = $1 WHERE id = $2`, [pts, b.id]);
+
+    await pool.query(
+      `UPDATE bets SET points_won = $1 WHERE id = $2`,
+      [pts, b.id]
+    );
+  }
+
+  for (const league of leaguesResult.rows) {
+    const before = beforeRankings[league.id];
+    const after = await getLeagueRanking(league.id);
+    const prizeZoneSize = getPrizeZoneSize(league);
+
+    for (const userId of Object.keys(after)) {
+      const oldData = before[userId];
+      const newData = after[userId];
+
+      if (!oldData || !newData) continue;
+
+      const oldRank = oldData.rank;
+      const newRank = newData.rank;
+      const movement = oldRank - newRank;
+
+      if (movement === 0) continue;
+
+      const enteredPrizeZone =
+        prizeZoneSize > 0 &&
+        oldRank > prizeZoneSize &&
+        newRank <= prizeZoneSize;
+
+      const leftPrizeZone =
+        prizeZoneSize > 0 &&
+        oldRank <= prizeZoneSize &&
+        newRank > prizeZoneSize;
+
+      const bigJump = movement >= 5;
+      const reachedFirst = oldRank !== 1 && newRank === 1;
+
+      if (!bigJump && !enteredPrizeZone && !leftPrizeZone && !reachedFirst) {
+        continue;
+      }
+
+      let message = '';
+
+      if (reachedFirst) {
+        message = `👑 ${newData.username} took over 1st place`;
+      } else if (enteredPrizeZone) {
+        message = `🎯 ${newData.username} climbed from #${oldRank} to #${newRank} and entered the prize zone`;
+      } else if (leftPrizeZone) {
+        message = `💔 ${newData.username} dropped from #${oldRank} to #${newRank} and left the prize zone`;
+      } else {
+        message = `🔥 ${newData.username} climbed from #${oldRank} to #${newRank}`;
+      }
+
+      try {
+        await pool.query(
+          `
+          INSERT INTO rank_movement_announcements
+          (game_id, league_id, user_id, old_rank, new_rank)
+          VALUES ($1, $2, $3, $4, $5)
+          `,
+          [game.id, league.id, Number(userId), oldRank, newRank]
+        );
+
+        await pool.query(
+          `
+          INSERT INTO league_messages (league_id, user_id, message)
+          VALUES ($1, $2, $3)
+          `,
+          [league.id, Number(userId), message]
+        );
+      } catch (err) {
+        if (err.code !== '23505') {
+          console.error(err);
+        }
+      }
+    }
   }
 }
 

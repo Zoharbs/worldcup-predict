@@ -1945,3 +1945,19 @@ button:active,
 .chat-mini-btn:hover {
   transform: translateY(-2px);
 }
+
+.league-prizes-preview {
+  max-width: 720px;
+  margin: 18px auto 24px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(229,185,71,0.08);
+  border: 1px solid rgba(229,185,71,0.18);
+  color: var(--text);
+  line-height: 1.7;
+  text-align: center;
+}
+
+.league-prizes-preview b {
+  color: var(--gold-light);
+}

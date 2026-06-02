@@ -2578,8 +2578,15 @@ app.get('/leaderboard/:leagueId', requireLogin, (req, res) => {
   if (!Number.isInteger(leagueId) || leagueId <= 0) return res.send('Invalid league id');
 
   db.get(
-    `SELECT l.id, l.name
-     FROM leagues l
+    `SELECT
+   l.id,
+   l.name,
+   l.prize_1,
+   l.prize_2,
+   l.prize_3,
+   l.prize_4,
+   l.prize_5
+ FROM leagues l
      JOIN league_members lm ON lm.league_id = l.id
      WHERE l.id = ? AND lm.user_id = ?`,
     [leagueId, req.session.userId],
@@ -2616,6 +2623,28 @@ app.get('/leaderboard/:leagueId', requireLogin, (req, res) => {
       db.all(sql, [leagueId], (err2, rows) => {
         if (err2) return res.send('Error loading league leaderboard');
 
+
+
+const prizesHtml =
+  league.prize_1 || league.prize_2 || league.prize_3 || league.prize_4 || league.prize_5
+    ? `
+      <div class="league-prizes-preview">
+        <b>League Prizes</b>
+        ${league.prize_1 ? `<div>🥇 ${league.prize_1}</div>` : ''}
+        ${league.prize_2 ? `<div>🥈 ${league.prize_2}</div>` : ''}
+        ${league.prize_3 ? `<div>🥉 ${league.prize_3}</div>` : ''}
+        ${league.prize_4 ? `<div>4th: ${league.prize_4}</div>` : ''}
+        ${league.prize_5 ? `<div>5th: ${league.prize_5}</div>` : ''}
+      </div>
+    `
+    : `
+      <div class="league-prizes-preview">
+        <b>No prizes set yet</b>
+        <div>League creator can add prizes from the league page.</div>
+      </div>
+    `;
+
+        
         const tableRows = rows.map((r, index) => {
           const isMe = r.id === req.session.userId;
           return `<tr class="${isMe ? 'highlight-me' : ''}"><td>${index + 1}</td><td><a href="/profile/${r.id}">${r.username}</a>${isMe ? ' (me)' : ''}</td><td>${r.total_points}</td><td>${r.credits_left ?? 0}</td></tr>`;
@@ -2630,7 +2659,12 @@ app.get('/leaderboard/:leagueId', requireLogin, (req, res) => {
 <link rel="icon" href="/favicon.ico?v=31">     
   <title>League Leaderboard</title><link rel="stylesheet" href="/css/style.css"></head>
           <body> ${renderSideNav(req)}<div class="page-wrap"><div class="section-title">League Leaderboard</div><div class="section-subtitle">${league.name}</div>
-          <div class="table-card"><table><tr><th>Rank</th><th>User</th><th>Points</th><th>Credits Left</th></tr>${tableRows || '<tr><td colspan="4">No data</td></tr>'}</table></div></div><div id="chatToast" class="chat-toast">
+         
+         
+          ${prizesHtml}
+
+<div class="table-card">
+          <table><tr><th>Rank</th><th>User</th><th>Points</th><th>Credits Left</th></tr>${tableRows || '<tr><td colspan="4">No data</td></tr>'}</table></div></div><div id="chatToast" class="chat-toast">
   <div class="chat-toast-title" id="chatToastTitle"></div>
   <div class="chat-toast-text" id="chatToastText"></div>
 </div>
@@ -2927,6 +2961,7 @@ app.get('/league/:id/prizes', requireLogin, async (req, res) => {
             </p>
 
             <form method="POST" action="/league/${league.id}/prizes">
+                <input type="hidden" name="return_to" value="${req.get('referer') || '/leagues'}">
               <input
                 name="prize_1"
                 placeholder="🥇 First place prize"
@@ -3031,7 +3066,18 @@ app.post('/league/:id/prizes', requireLogin, async (req, res) => {
       ]
     );
 
-    res.redirect('/league/' + leagueId + '/prizes');
+    await pool.query(
+  `
+  INSERT INTO league_messages (league_id, user_id, message)
+  VALUES ($1, $2, $3)
+  `,
+  [
+    leagueId,
+    req.session.userId,
+    '🏆 League prizes were updated'
+  ]
+);
+res.redirect(req.body.return_to || '/leagues');
   } catch (err) {
     console.error(err);
     res.send('Error saving prizes');

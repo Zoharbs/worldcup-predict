@@ -1555,7 +1555,39 @@ app.get('/', (req, res) => {
   <div class="chat-toast-text" id="chatToastText"></div>
 </div>
 
-<script src="/js/chatNotifications.js"></script></body>
+<script src="/js/chatNotifications.js"></script>
+
+<div id="welcomeNotice" class="side-notice">
+  <button class="side-notice-close" onclick="closeNotice()">✕</button>
+
+  <h3>📢 Tournament Reminder</h3>
+
+  <p>Read the rules before placing predictions.</p>
+
+  <p>
+    <b>+50 bonus credits</b> will be awarded to all users when the knockout stage begins.
+  </p>
+
+  <a href="/help" class="mini-action-btn">
+    Read Rules
+  </a>
+</div>
+
+<script>
+function closeNotice() {
+  document.getElementById('welcomeNotice').remove();
+  localStorage.setItem('welcomeNoticeClosed', 'true');
+}
+
+window.addEventListener('load', () => {
+  if (localStorage.getItem('welcomeNoticeClosed')) {
+    document.getElementById('welcomeNotice')?.remove();
+  }
+});
+</script>
+
+
+</body>
         </html>
       `);
     }

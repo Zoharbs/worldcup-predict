@@ -2057,3 +2057,38 @@ button:active,
   background: rgba(255,255,255,0.06);
   color: var(--text);
 }
+
+.side-notice {
+  position: fixed;
+  right: 20px;
+  top: 100px;
+  width: 320px;
+  max-width: calc(100vw - 40px);
+  padding: 18px;
+  border-radius: 18px;
+  background: #1f1f1f;
+  border: 1px solid rgba(229,185,71,.35);
+  z-index: 9999;
+  animation: slideInNotice .4s ease;
+}
+
+.side-notice-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+@keyframes slideInNotice {
+  from {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

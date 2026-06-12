@@ -4521,14 +4521,7 @@ app.get('/check-games', (req, res) => {
 // START
 // =========================
 
-async function startServer() {
-  try {
-    await setupDatabase();
-    await ensureAdminUser();
-
-    runAutoSync();
-    smartSyncLoop();
-   let syncTimer = null;
+let syncTimer = null;
 let syncRunning = false;
 
 async function hasLiveGames() {
@@ -4556,18 +4549,20 @@ async function smartSyncLoop() {
   }
 
   const live = await hasLiveGames();
+  const delay = live ? 60 * 1000 : 60 * 60 * 1000;
 
-  const delay = live
-    ? 60 * 1000
-    : 60 * 60 * 1000;
-
-  console.log(
-    `Next sync in ${live ? '1 minute' : '1 hour'}`
-  );
+  console.log(`Next sync in ${live ? '1 minute' : '1 hour'}`);
 
   clearTimeout(syncTimer);
   syncTimer = setTimeout(smartSyncLoop, delay);
 }
+
+async function startServer() {
+  try {
+    await setupDatabase();
+    await ensureAdminUser();
+
+    smartSyncLoop();
 
     app.listen(PORT, () => {
       console.log(`Server is listening on http://localhost:${PORT}`);
@@ -4578,7 +4573,5 @@ async function smartSyncLoop() {
   }
 }
 
-
-
-
 startServer();
+

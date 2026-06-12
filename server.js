@@ -216,6 +216,10 @@ CREATE TABLE IF NOT EXISTS users (
     )
   `);
 
+  await pool.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS live_status TEXT`);
+  await pool.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS live_minute INTEGER`);
+  await pool.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS last_api_update TIMESTAMP`);
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS bets (
       id SERIAL PRIMARY KEY,
@@ -786,59 +790,75 @@ async function syncGamesFromApi() {
     const homeLogo = teams.home?.logo || null;
     const awayLogo = teams.away?.logo || null;
 
-    const status = fixture.status && ['FT', 'AET', 'PEN'].includes(fixture.status.short)
+const apiStatus = fixture.status?.short || 'NS';
+const liveMinute = fixture.status?.elapsed ?? null;
+
+    const liveStatuses = ['1H', 'HT', '2H', 'ET', 'BT', 'P', 'SUSP', 'INT'];
+    const finishedStatuses = ['FT', 'AET', 'PEN'];
+
+    const status = finishedStatuses.includes(apiStatus)
       ? 'finished'
-      : 'future';
+      : liveStatuses.includes(apiStatus)
+        ? 'live'
+        : 'future';
 
     const homeScore = goals?.home !== null && goals?.home !== undefined ? Number(goals.home) : null;
     const awayScore = goals?.away !== null && goals?.away !== undefined ? Number(goals.away) : null;
     const stage = league?.round || 'GROUP';
 
-    await pool.query(
-      `
-      INSERT INTO games (
-        external_id,
-        home_team,
-        away_team,
-        game_date,
-        game_time,
-        home_score,
-        away_score,
-        status,
-        competition_id,
-        stage,
-        home_logo,
-        away_logo
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-      ON CONFLICT (external_id) DO UPDATE SET
-        home_team = EXCLUDED.home_team,
-        away_team = EXCLUDED.away_team,
-        game_date = EXCLUDED.game_date,
-        game_time = EXCLUDED.game_time,
-        home_score = EXCLUDED.home_score,
-        away_score = EXCLUDED.away_score,
-        status = EXCLUDED.status,
-        competition_id = EXCLUDED.competition_id,
-        stage = EXCLUDED.stage,
-        home_logo = EXCLUDED.home_logo,
-        away_logo = EXCLUDED.away_logo
-      `,
-      [
-        externalId,
-        homeTeam,
-        awayTeam,
-        israelDate.date,
-        israelDate.time,
-        homeScore,
-        awayScore,
-        status,
-        1,
-        stage,
-        homeLogo,
-        awayLogo
-      ]
-    );
+await pool.query(
+  `
+  INSERT INTO games (
+    external_id,
+    home_team,
+    away_team,
+    game_date,
+    game_time,
+    home_score,
+    away_score,
+    status,
+    competition_id,
+    stage,
+    home_logo,
+    away_logo,
+    live_status,
+    live_minute,
+    last_api_update
+  )
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, CURRENT_TIMESTAMP)
+  ON CONFLICT (external_id) DO UPDATE SET
+    home_team = EXCLUDED.home_team,
+    away_team = EXCLUDED.away_team,
+    game_date = EXCLUDED.game_date,
+    game_time = EXCLUDED.game_time,
+    home_score = EXCLUDED.home_score,
+    away_score = EXCLUDED.away_score,
+    status = EXCLUDED.status,
+    competition_id = EXCLUDED.competition_id,
+    stage = EXCLUDED.stage,
+    home_logo = EXCLUDED.home_logo,
+    away_logo = EXCLUDED.away_logo,
+    live_status = EXCLUDED.live_status,
+    live_minute = EXCLUDED.live_minute,
+    last_api_update = CURRENT_TIMESTAMP
+  `,
+  [
+    externalId,
+    homeTeam,
+    awayTeam,
+    israelDate.date,
+    israelDate.time,
+    homeScore,
+    awayScore,
+    status,
+    1,
+    stage,
+    homeLogo,
+    awayLogo,
+    apiStatus,
+    liveMinute
+  ]
+);
 
     if (status === 'finished' && homeScore !== null && awayScore !== null) {
       await recalculatePointsForGameByExternalId(externalId, homeScore, awayScore);
@@ -4507,7 +4527,47 @@ async function startServer() {
     await ensureAdminUser();
 
     runAutoSync();
-    setInterval(runAutoSync, 60 * 60 * 1000);
+    smartSyncLoop();
+   let syncTimer = null;
+let syncRunning = false;
+
+async function hasLiveGames() {
+  const result = await pool.query(`
+    SELECT 1
+    FROM games
+    WHERE status = 'live'
+    LIMIT 1
+  `);
+
+  return result.rows.length > 0;
+}
+
+async function smartSyncLoop() {
+  if (syncRunning) return;
+
+  syncRunning = true;
+
+  try {
+    await runAutoSync();
+  } catch (err) {
+    console.error(err);
+  } finally {
+    syncRunning = false;
+  }
+
+  const live = await hasLiveGames();
+
+  const delay = live
+    ? 60 * 1000
+    : 60 * 60 * 1000;
+
+  console.log(
+    `Next sync in ${live ? '1 minute' : '1 hour'}`
+  );
+
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(smartSyncLoop, delay);
+}
 
     app.listen(PORT, () => {
       console.log(`Server is listening on http://localhost:${PORT}`);

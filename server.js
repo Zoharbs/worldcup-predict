@@ -1963,7 +1963,7 @@ const params = isLoggedIn ? [userId, userId] : [];
   </div>
 ` : '';
 
-const scoreBlock = game.status !== 'future' ? `
+const scoreBlock = game.status === 'live' ? `
   <div class="prediction-vs-result">
     <div><b>Current result:</b> ${game.home_score ?? 0} - ${game.away_score ?? 0}</div>
   </div>

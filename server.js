@@ -1908,6 +1908,8 @@ const params = isLoggedIn ? [userId, userId] : [];
       let fallbackMarked = false;
       let gamesHtml = '';
 
+      let relevantGameMarked = false;
+
       games.forEach(game => {
         let block = '';
         let gameAnchor = '';
@@ -1968,10 +1970,22 @@ const scoreBlock = game.status === 'live' ? `
     <div><b>Current result:</b> ${game.home_score ?? 0} - ${game.away_score ?? 0}</div>
   </div>
 ` : '';
+
+const isRelevantGame =
+  !relevantGameMarked &&
+  (game.status === 'live' || game.status === 'future');
+
+const relevantId = isRelevantGame
+  ? 'relevant-game'
+  : '';
+
+if (isRelevantGame) {
+  relevantGameMarked = true;
+}
         gamesHtml += `
-                <div
+                   <div
                   class="game-card"
-                  id="game-${game.id}"
+                  id="${relevantId || `game-${game.id}`}"
                   ${gameAnchor}
                   data-search="${game.home_team} ${game.away_team} ${formatStage(game.stage)} ${game.game_date}"
                 >
@@ -2084,7 +2098,7 @@ ${scoreBlock}
     { keys: ['pogba', 'פוגבה'], emoji: '🕺' },
     { keys: ['kante', 'קאנטה'], emoji: '🔋' },
     { keys: ['hakimi', 'חכימי'], emoji: '🏎️' },
-    { keys: ['osimhen', 'אוסימהן'], emoji: '🦅' },
+    { keys: ['osimhen', 'אוסימן'], emoji: '🦅' },
     { keys: ['son', 'סון'], emoji: '😊' },
     { keys: ['kim min jae', 'קים מין גה'], emoji: '🧱' }
   ];
@@ -2140,9 +2154,9 @@ ${scoreBlock}
   </div>
 
   <div class="donate-buttons">
-    <a href="https://paypal.me/ZoharBenShlomo/3" target="_blank">₪3</a>
-    <a href="https://paypal.me/ZoharBenShlomo/9" target="_blank">₪9</a>
-    <a href="https://paypal.me/ZoharBenShlomo/15" target="_blank">₪15</a>
+    <a href="https://paypal.me/ZoharBenShlomo/10" target="_blank">₪10</a>
+    <a href="https://paypal.me/ZoharBenShlomo/20" target="_blank">₪20</a>
+    <a href="https://paypal.me/ZoharBenShlomo/30" target="_blank">₪30</a>
   </div>
 </div>
 
@@ -2197,7 +2211,18 @@ ${scoreBlock}
   <div class="chat-toast-text" id="chatToastText"></div>
 </div>
 
-<script src="/js/chatNotifications.js"></script></body>
+<script src="/js/chatNotifications.js"></script><script>
+window.addEventListener('load', () => {
+  const target = document.getElementById('relevant-game');
+
+  if (target) {
+    target.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  }
+});
+</script></body>
         </html>
       `);
     });

@@ -2038,3 +2038,22 @@ button:active,
     #515bd4
   );
 }
+
+.live-match-pill {
+  display: inline-block;
+  margin: 10px 0;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255,59,48,0.16);
+  border: 1px solid rgba(255,59,48,0.45);
+  color: #ff6b5f;
+  font-weight: 900;
+}
+
+.prediction-vs-result {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+}

@@ -1955,6 +1955,19 @@ const params = isLoggedIn ? [userId, userId] : [];
             `;
           }
         }
+
+        const liveBlock = game.status === 'live' ? `
+  <div class="live-match-pill">
+    LIVE ${game.live_minute ? `• ${game.live_minute}'` : ''}
+    | ${game.home_score ?? 0} - ${game.away_score ?? 0}
+  </div>
+` : '';
+
+const scoreBlock = game.status !== 'future' ? `
+  <div class="prediction-vs-result">
+    <div><b>Current result:</b> ${game.home_score ?? 0} - ${game.away_score ?? 0}</div>
+  </div>
+` : '';
         gamesHtml += `
                 <div
                   class="game-card"
@@ -1978,7 +1991,8 @@ const params = isLoggedIn ? [userId, userId] : [];
 
             <p><b>Stage:</b> ${formatStage(game.stage)}</p>
             <p>${game.game_date} | ${game.game_time}</p>
-
+${liveBlock}
+${scoreBlock}
 <div class="game-card-actions">
 
   <a href="/game/${game.id}" class="mini-action-btn">

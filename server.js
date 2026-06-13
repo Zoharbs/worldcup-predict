@@ -1385,7 +1385,7 @@ app.get('/', (req, res) => {
     `
     SELECT *
     FROM games
-    WHERE status = 'future'
+    WHERE status IN ('future', 'live')
     ORDER BY game_date ASC, game_time ASC
     LIMIT 1
     `,

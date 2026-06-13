@@ -777,6 +777,15 @@ async function syncGamesFromApi() {
   for (const item of matches) {
     const fixture = item.fixture;
     const teams = item.teams;
+
+    console.log(
+  teams.home?.name,
+  teams.away?.name,
+  fixture.status?.short,
+  fixture.status?.elapsed,
+  item.goals?.home,
+  item.goals?.away
+);
     const goals = item.goals;
     const league = item.league;
 

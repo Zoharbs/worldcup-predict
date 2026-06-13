@@ -1922,14 +1922,14 @@ app.get('/games', (req, res) => {
         LEFT JOIN bets b ON b.game_id = g.id AND b.user_id = ?
         LEFT JOIN pinned_matches pm
   ON pm.game_id = g.id AND pm.user_id = ?
-        WHERE g.status IN ('future','finished')
+        WHERE g.status IN ('future','live','finished')
 ORDER BY is_pinned DESC, g.game_date ASC, g.game_time ASC
       `
       : `
         SELECT g.*, c.name AS competition_name
         FROM games g
         LEFT JOIN competitions c ON c.id = g.competition_id
-        WHERE g.status IN ('future','finished')
+        WHERE g.status IN ('future','live','finished')
         ORDER BY g.game_date ASC, g.game_time ASC
       `;
 

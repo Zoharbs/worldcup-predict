@@ -2092,3 +2092,13 @@ button:active,
     opacity: 1;
   }
 }
+
+.next-match-live-card {
+  border: 1px solid rgba(255, 60, 60, 0.45);
+}
+
+.next-match-live-status {
+  margin-top: 10px;
+  font-weight: 900;
+  color: #ff6b6b;
+}

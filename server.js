@@ -1423,37 +1423,55 @@ app.get('/', (req, res) => {
         `;
       }
 
-      const nextMatchHtml = nextGame
+const isLive = nextGame && nextGame.status === 'live';
+
+const nextMatchHtml = nextGame
+  ? `
+    <div class="next-match-card ${isLive ? 'next-match-live-card' : ''}">
+      <div class="next-match-title">
+        ${isLive ? '🔴 LIVE NOW' : 'Next Match'}
+      </div>
+
+      <div class="next-match-teams">
+        <span class="team">
+          ${nextGame.home_logo ? `<img src="${nextGame.home_logo}" class="team-logo">` : ''}
+          ${nextGame.home_team}
+        </span>
+
+        <span class="vs">
+          ${isLive
+            ? `${nextGame.home_score ?? 0} - ${nextGame.away_score ?? 0}`
+            : 'vs'}
+        </span>
+
+        <span class="team">
+          ${nextGame.away_logo ? `<img src="${nextGame.away_logo}" class="team-logo">` : ''}
+          ${nextGame.away_team}
+        </span>
+      </div>
+
+      <div class="next-match-time">
+        ${isLive
+          ? `Minute: ${nextGame.live_minute ?? '-'}'`
+          : `${nextGame.game_date} • ${nextGame.game_time}`}
+      </div>
+
+      ${isLive
         ? `
-          <div class="next-match-card">
-            <div class="next-match-title">Next Match</div>
-
-            <div class="next-match-teams">
-              <span class="team">
-                ${nextGame.home_logo ? `<img src="${nextGame.home_logo}" class="team-logo">` : ''}
-                ${nextGame.home_team}
-              </span>
-
-              <span class="vs">vs</span>
-
-              <span class="team">
-                ${nextGame.away_logo ? `<img src="${nextGame.away_logo}" class="team-logo">` : ''}
-                ${nextGame.away_team}
-              </span>
-            </div>
-
-            <div class="next-match-time">
-  ${nextGame.game_date} • ${nextGame.game_time}
-</div>
-
-            <div
-              class="next-match-countdown"
-              data-date="${nextGame.game_date}"
-              data-time="${nextGame.game_time}">
-            </div>
+          <div class="next-match-live-status">
+            Current score: ${nextGame.home_score ?? 0} - ${nextGame.away_score ?? 0}
           </div>
         `
-        : '';
+        : `
+          <div
+            class="next-match-countdown"
+            data-date="${nextGame.game_date}"
+            data-time="${nextGame.game_time}">
+          </div>
+        `}
+    </div>
+  `
+  : '';
 
       res.send(`
         <!DOCTYPE html>
@@ -1537,14 +1555,13 @@ app.get('/', (req, res) => {
       return;
     }
 
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
     const minutes = Math.floor((diff / (1000 * 60)) % 60);
     const seconds = Math.floor((diff / 1000) % 60);
 
     el.textContent =
       'Starts in ' +
-      days + 'd ' +
+    
       String(hours).padStart(2, '0') + 'h ' +
       String(minutes).padStart(2, '0') + 'm ' +
       String(seconds).padStart(2, '0') + 's';

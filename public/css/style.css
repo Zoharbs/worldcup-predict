@@ -2102,3 +2102,30 @@ button:active,
   font-weight: 900;
   color: #ff6b6b;
 }
+
+.round32-notice {
+  border: 2px solid #f4c542;
+  background: linear-gradient(135deg, #20472c, #2e6b3f);
+  color: white;
+  animation: bonusPop 0.4s ease;
+}
+
+.round32-notice h3 {
+  color: #ffd54f;
+  margin-top: 0;
+}
+
+.round32-notice b {
+  color: #ffe082;
+}
+
+@keyframes bonusPop {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

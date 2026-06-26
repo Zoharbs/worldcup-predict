@@ -150,6 +150,12 @@ const db = {
 };
 
 async function setupDatabase() {
+
+    await pool.query(`
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS round32_bonus_given BOOLEAN DEFAULT FALSE;
+  `);
+
   await pool.query(`
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
@@ -427,6 +433,7 @@ function canGuess(game_date, game_time) {
 function formatStage(stage) {
   const s = String(stage || '').toUpperCase();
 
+  if (s.includes('ROUND') && s.includes('32')) return 'Round of 32';
   if (s.includes('ROUND') && s.includes('16')) return 'Round of 16';
   if (s.includes('LAST_16')) return 'Round of 16';
   if (s.includes('QUARTER')) return 'Quarter Finals';
@@ -1598,7 +1605,42 @@ const nextMatchHtml = nextGame
     Read Rules
   </a>
 </div>
+<div id="round32Notice" class="side-notice">
+  <button class="side-notice-close" onclick="closeNotice()">✕</button>
 
+  <h3>🎁 בונוס מיוחד!</h3>
+
+  <p>
+    משחקי <b>שלב 32 האחרונות</b> נוספו למערכת.
+  </p>
+
+  <p>
+    כדי שכל המשתתפים יתחילו את שלב הנוקאאוט בצורה הוגנת,
+    <b>כל המשתמשים קיבלו 25 קרדיטים נוספים.</b>
+  </p>
+
+  <p>
+    מאחלים לכולם בהצלחה בהמשך הטורניר! ⚽🏆
+  </p>
+
+  <a href="/games" class="mini-action-btn">
+    לצפייה במשחקים
+  </a>
+
+</div>
+
+<script>
+function closeRound32Notice() {
+  document.getElementById('round32Notice')?.remove();
+  localStorage.setItem('round32Bonus2026Closed', 'true');
+}
+
+window.addEventListener('load', () => {
+  if (localStorage.getItem('round32Bonus2026Closed')) {
+    document.getElementById('round32Notice')?.remove();
+  }
+});
+</script>
 <script>
 function closeNotice() {
   document.getElementById('welcomeNotice').remove();

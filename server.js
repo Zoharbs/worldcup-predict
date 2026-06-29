@@ -1615,8 +1615,7 @@ const nextMatchHtml = nextGame
   </a>
 </div>
 <div id="round32Notice" class="side-notice">
-  <button class="side-notice-close" onclick="closeNotice()">✕</button>
-
+<button class="side-notice-close" onclick="closeRound32Notice()">✕</button>
   <h3>🎁 בונוס מיוחד!</h3>
 
   <p>

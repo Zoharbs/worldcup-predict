@@ -324,6 +324,15 @@ await pool.query(`
   ALTER TABLE leagues
   ADD COLUMN IF NOT EXISTS prize_5 TEXT
 `);
+
+await pool.query(`
+  UPDATE users
+  SET
+    credits = credits + 25,
+    round32_bonus_given = TRUE
+  WHERE round32_bonus_given = FALSE
+     OR round32_bonus_given IS NULL
+`);
 }
 
 async function ensureAdminUser() {
@@ -4711,14 +4720,7 @@ async function startServer() {
     process.exit(1);
   }
 }
-await pool.query(`
-  UPDATE users
-  SET
-    credits = credits + 25,
-    round32_bonus_given = TRUE
-  WHERE round32_bonus_given = FALSE
-     OR round32_bonus_given IS NULL
-`);
+
 
 console.log('25 credits added to all users');
 startServer();

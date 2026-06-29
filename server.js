@@ -151,10 +151,7 @@ const db = {
 
 async function setupDatabase() {
 
-    await pool.query(`
-ALTER TABLE users
-ADD COLUMN IF NOT EXISTS round32_bonus_given BOOLEAN DEFAULT FALSE;
-  `);
+
 
   await pool.query(`
 CREATE TABLE IF NOT EXISTS users (
@@ -169,7 +166,10 @@ CREATE TABLE IF NOT EXISTS users (
 
     )
   `);
-
+    await pool.query(`
+ALTER TABLE users
+ADD COLUMN IF NOT EXISTS round32_bonus_given BOOLEAN DEFAULT FALSE;
+  `);
   await pool.query(`ALTER TABLE users ALTER COLUMN password DROP NOT NULL`);
 
   await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP`);
@@ -328,7 +328,7 @@ await pool.query(`
 await pool.query(`
   UPDATE users
   SET
-    credits = credits + 25,
+    credits_left = credits_left + 25,
     round32_bonus_given = TRUE
   WHERE round32_bonus_given = FALSE
      OR round32_bonus_given IS NULL

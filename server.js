@@ -2371,15 +2371,62 @@ app.get('/game/:id', (req, res) => {
     const alreadyBet = game.my_home_guess !== null && game.my_home_guess !== undefined;
     const openForBetting = game.status === 'future' && canGuess(game.game_date, game.game_time);
 
-    const statusHtml = game.status === 'finished'
-      ? `<div class="match-final-score">${game.home_score} : ${game.away_score}</div>`
-      : `
-        <div
-          class="next-match-countdown match-countdown"
-          data-date="${game.game_date}"
-          data-time="${game.game_time}">
-        </div>
-      `;
+let statusHtml;
+
+if (game.status === 'live') {
+
+  statusHtml = `
+    <div class="match-final-score">
+      ${game.home_score} : ${game.away_score}
+    </div>
+
+    <div class="live-pill">
+      🔴 LIVE ${game.live_minute || ''}'
+    </div>
+  `;
+
+} else if (game.status === 'finished') {
+
+  statusHtml = `
+    <div class="match-final-score">
+      ${game.home_score} : ${game.away_score}
+    </div>
+  `;
+
+  if (game.live_status === 'AET') {
+
+    statusHtml += `
+      <div class="status-pill">
+        Finished after extra time
+      </div>
+    `;
+
+  } else if (game.live_status === 'PEN') {
+
+    const homeWon =
+      Number(game.penalty_home_score) >
+      Number(game.penalty_away_score);
+
+    statusHtml += `
+      <div class="status-pill">
+        🏆
+        ${homeWon ? game.home_team : game.away_team}
+        won on penalties
+        (${game.penalty_home_score}-${game.penalty_away_score})
+      </div>
+    `;
+  }
+
+} else {
+
+  statusHtml = `
+    <div
+      class="next-match-countdown match-countdown"
+      data-date="${game.game_date}"
+      data-time="${game.game_time}">
+    </div>
+  `;
+}
 
     const predictionHtml = req.session.userId
       ? `
@@ -2498,7 +2545,17 @@ app.get('/game/:id', (req, res) => {
             <div class="profile-stats">
               <div class="stat-box">
                 <div class="stat-label">Status</div>
-                <div class="stat-value">${game.status}</div>
+                <div class="stat-value">
+  ${
+    game.status === 'live'
+      ? `🔴 LIVE ${game.live_minute || ''}'`
+      : game.live_status === 'PEN'
+        ? 'Finished (Penalties)'
+        : game.live_status === 'AET'
+          ? 'Finished (Extra Time)'
+          : game.status
+  }
+</div>
               </div>
 
               <div class="stat-box">

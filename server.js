@@ -388,54 +388,30 @@ function makeJoinCode(len = 6) {
   return out;
 }
 
-function getIsraelNowParts() {
-  const now = new Date();
-  const fmt = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Jerusalem',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  });
-
-  const parts = fmt.formatToParts(now);
-  const map = {};
-  for (const p of parts) map[p.type] = p.value;
-
-  return {
-    date: `${map.year}-${map.month}-${map.day}`,
-    time: `${map.hour}:${map.minute}`
-  };
-}
 
 function apiDateToIsraelParts(apiDate) {
   const dateObj = new Date(apiDate);
-  const fmt = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Jerusalem',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  });
-
-  const parts = fmt.formatToParts(dateObj);
-  const map = {};
-  for (const p of parts) map[p.type] = p.value;
 
   return {
-    date: `${map.year}-${map.month}-${map.day}`,
-    time: `${map.hour}:${map.minute}`
+    date: dateObj.toISOString().slice(0, 10),
+    time: dateObj.toISOString().slice(11, 16)
+  };
+}
+function getNowUtcParts() {
+  const now = new Date();
+
+  return {
+    date: now.toISOString().slice(0, 10),
+    time: now.toISOString().slice(11, 16)
   };
 }
 
 function canGuess(game_date, game_time) {
-  const now = getIsraelNowParts();
+  const now = getNowUtcParts();
+
   if (game_date > now.date) return true;
   if (game_date < now.date) return false;
+
   return game_time > now.time;
 }
 
@@ -1562,7 +1538,7 @@ const nextMatchHtml = nextGame
     const date = el.dataset.date;
     const time = el.dataset.time;
 
-    const target = new Date(date + 'T' + time + ':00');
+    const target = new Date(date + 'T' + time + ':00Z');
 
     const diff = target - new Date();
 
@@ -2577,7 +2553,7 @@ if (game.status === 'live') {
             const el = document.querySelector('.match-countdown');
             if (!el) return;
 
-            const target = new Date(el.dataset.date + 'T' + el.dataset.time + ':00');
+            const target = new Date(el.dataset.date + 'T' + el.dataset.time + ':00Z');
             const diff = target - new Date();
 
             if (diff <= 0) {

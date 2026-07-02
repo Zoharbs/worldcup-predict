@@ -1985,7 +1985,7 @@ const params = isLoggedIn ? [userId, userId] : [];
 
 
 
-      const now = getIsraelNowParts();
+      const now = getNowUtcParts();
       const todayStr = now.date;
       const nowTime = now.time;
       let todayMarked = false;

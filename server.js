@@ -333,6 +333,16 @@ await pool.query(`
   WHERE round32_bonus_given = FALSE
      OR round32_bonus_given IS NULL
 `);
+
+await pool.query(`
+  UPDATE users
+  SET
+    credits_left = credits_left + 50,
+    knockout_bonus_given = 1
+  WHERE knockout_bonus_given = 0
+     OR knockout_bonus_given IS NULL
+`);
+
 }
 
 async function ensureAdminUser() {
@@ -1599,8 +1609,8 @@ const nextMatchHtml = nextGame
   </p>
 
   <p>
-    כדי שכל המשתתפים יתחילו את שלב הנוקאאוט בצורה הוגנת,
-    <b>כל המשתמשים קיבלו 25 קרדיטים נוספים.</b>
+  לכבוד השלבים האחרונים של המונדיאל
+    <b>כל המשתמשים קיבלו 50 קרדיטים נוספים.</b>
   </p>
 
   <p>
